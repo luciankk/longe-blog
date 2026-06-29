@@ -59,6 +59,29 @@
   figure.infig figcaption .cap{font-weight:600}
   figure.infig .dlmini{font-size:11.5px;color:var(--sub);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 11px;cursor:pointer;white-space:nowrap;transition:.15s}
   figure.infig .dlmini:hover{color:var(--accent);border-color:var(--accent)}
+  figure.infig img{width:100%;height:auto;display:block;border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:0 2px 12px rgba(31,35,40,.06)}
+  figure.infig.photo img{max-height:460px;object-fit:contain;background:#f7f6f4}
+  figure.infig .credit{font-size:11px;color:#aeb4bc}
+  /* 키워드 UI */
+  .gkw{background:linear-gradient(135deg,#fff,#fff5f8);border:1px solid #ffd7e3;border-radius:14px;padding:16px 18px;margin:18px 0 4px;box-shadow:var(--shadow)}
+  .gkw-lbl{font-size:13.5px;color:var(--ink)}
+  .gkw-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}
+  .gkw input{flex:1 1 280px;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:14px}
+  .gkw input:focus{outline:none;border-color:var(--accent)}
+  .gkw button,.kwbar button{border:none;border-radius:10px;padding:11px 16px;font-size:13.5px;font-weight:700;cursor:pointer;transition:.15s}
+  .gkw .apply,.kwbar .apply{background:var(--accent);color:#fff}
+  .gkw .apply:hover,.kwbar .apply:hover{background:#c5345d}
+  .gkw .reset,.kwbar .reset{background:#fff;border:1px solid var(--line);color:var(--sub)}
+  .gkw .reset:hover,.kwbar .reset:hover{border-color:var(--accent);color:var(--accent)}
+  .gkw-hint{font-size:11.5px;color:var(--sub)}
+  .kwbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 2px;padding:11px 13px;background:#fff5f8;border:1px solid #ffd7e3;border-radius:12px}
+  .kwbar .kwicon{font-size:12.5px;font-weight:700;color:var(--accent)}
+  .kwbar input{flex:1 1 220px;min-width:170px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px}
+  .kwbar input:focus{outline:none;border-color:var(--accent)}
+  .kwbar button{padding:9px 13px;font-size:13px}
+  .kwbar .kwst{font-size:12px;color:var(--good);font-weight:700;flex-basis:100%}
+  .kwcallout{background:linear-gradient(135deg,#fff,#fff5f8);border-left:4px solid var(--accent);border-radius:10px;padding:12px 15px;margin:12px 0;font-size:14px;line-height:1.6}
+  .kwnote{font-size:12px;color:#7a5a1e;background:#fff7ed;border:1px solid #f3d9ad;border-radius:10px;padding:10px 13px;margin:14px 0 2px;line-height:1.6}
   .bodywrap{padding:8px 22px 4px}
   .body h3{font-size:16px;margin:22px 0 8px;padding-left:11px;border-left:4px solid var(--accent)}
   .body p{margin:10px 0}
@@ -129,6 +152,16 @@
     <button class="fbtn" data-f="선케어">선케어</button>
     <button class="fbtn" data-f="마스크">마스크팩</button>
     <button class="fbtn" data-f="올인원">올인원</button>
+  </div>
+
+  <div class="gkw">
+    <span class="gkw-lbl">🗓️ <b>키워드로 글 업데이트</b> — 시즌·이벤트 키워드를 넣으면 도입부·전용 섹션·해시태그·배너가 자동 반영됩니다</span>
+    <div class="gkw-row">
+      <input id="gkwin" placeholder="예: 휴가 시즌, 환절기, 미세먼지, 명절 선물, 연말 파티…" onkeydown="if(event.key==='Enter')applyKwAll()">
+      <button class="apply" onclick="applyKwAll()">전체 18편 적용</button>
+      <button class="reset" onclick="resetKwAll()">전체 해제</button>
+    </div>
+    <span class="gkw-hint">※ 날짜별로 다른 키워드를 넣으려면 각 글 카드의 키워드 칸을 이용하세요. 입력값은 이 브라우저에 저장됩니다.</span>
   </div>
 
   <details class="sched">
@@ -254,7 +287,7 @@ function buildImages(p){
   if(p.certs && p.certs.length){ imgs.push({name:p.product+"_인증", svg:svgCerts(p,"인증 · 검증 포인트",p.certs), slot:"cert", cap:"인증·검증 포인트"}); }
   return imgs.slice(0,3);
 }
-/* 본문 인라인 figure HTML */
+/* 본문 인라인 figure HTML (SVG 인포그래픽) */
 function figHTML(p, idx, im){
   const safe=(im.name||"image").replace(/'/g,"");
   return `<figure class="infig" data-cap="${im.cap||""}"><div id="svg_${p.id}_${idx}">${im.svg}</div>`
@@ -262,16 +295,113 @@ function figHTML(p, idx, im){
     +`<button class="dlmini" onclick="dlPng(${p.id},${idx},'${safe}')">⬇ 이미지 저장(PNG)</button></figcaption></figure>`;
 }
 
+/* ===== 실제 사진 이미지 (공식 제품 사진 + 무료 뷰티 스톡) ===== */
+const BASE="https://luciankk.github.io/longe-blog/";
+const PRODUCT_IMG={1:"p01.jpg",2:"p02.jpg",3:"p03.jpg",4:"p04.jpg",5:"p05.jpg",6:"p06.png",7:"p07.jpg",8:"p08.jpg",9:"p09.jpg",10:"p10.png",11:"p11.png",12:"p12.png",13:"p13.jpg",14:"p14.png",15:"p15.png",16:"p16.png",17:"p17a.png",18:"p18.jpg"};
+const STOCK_IMG={1:"s12_clean.jpg",2:"s14_glow.jpg",3:"s05_texture.jpg",4:"s06_bottles.jpg",5:"s10_dropper.jpg",6:"s08_cosmetic.jpg",7:"s07_natural.jpg",8:"s11_spa.jpg",9:"s09_skincare.jpg",10:"s14_glow.jpg",11:"s12_clean.jpg",12:"s13_mask.jpg",13:"s06_bottles.jpg",14:"s07_natural.jpg",15:"s02_routine.jpg",16:"s09_skincare.jpg",17:"s13_mask.jpg",18:"s08_cosmetic.jpg"};
+function figPhoto(src, cap, credit){
+  return `<figure class="infig photo" data-cap="${cap}"><img src="img/${src}" alt="${cap}" loading="lazy">`
+    +`<figcaption><span class="cap">▲ ${cap}</span><span class="credit">${credit||""}</span></figcaption></figure>`;
+}
+
+/* ===== 키워드 테마 배너 (SVG) ===== */
+function svgKwBanner(theme, kw, product){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="190" viewBox="0 0 800 190" font-family="Pretendard,'Malgun Gothic',sans-serif">
+  <defs><linearGradient id="kw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${theme.c1}"/><stop offset="1" stop-color="${theme.c2}"/></linearGradient></defs>
+  <rect width="800" height="190" rx="18" fill="url(#kw)"/>
+  <circle cx="700" cy="40" r="120" fill="#fff" opacity=".08"/>
+  <text x="44" y="70" font-size="58">${theme.emoji}</text>
+  <text x="120" y="64" font-size="17" fill="#fff" opacity=".85" font-weight="700">이 날짜 글 · 키워드 반영</text>
+  <text x="120" y="108" font-size="34" fill="#fff" font-weight="800">${esc(theme.label||kw)}</text>
+  <text x="44" y="158" font-size="16" fill="#fff" opacity=".9">${esc(product)} · 시즌/상황 맞춤 콘텐츠</text>
+  </svg>`;
+}
+
+/* ===== 키워드 테마 라이브러리 ===== */
+const KW_THEMES=[
+ {k:["휴가","바캉스","vacation","여름휴가","휴양","피서"],emoji:"🏖️",label:"휴가 시즌",c1:"#36c5f0",c2:"#1f6fbf",
+  hook:"드디어 기다리던 휴가철! 강한 햇볕과 바닷바람, 에어컨 아래 건조함까지 — 휴가지에서도 피부 컨디션을 지키는 게 관건이죠.",
+  sh:"휴가 시즌, 이렇게 활용하세요",si:["여행용으로 챙기기 좋게 루틴을 간소화하기","강한 자외선·바닷바람 뒤엔 진정·보습 케어 잊지 않기","휴가 사진을 위한 매끈한 피부결 베이스 준비하기"],
+  tags:["휴가시즌","여름휴가","바캉스뷰티","휴가스킨케어"]},
+ {k:["여름","폭염","무더위","열대야","summer"],emoji:"☀️",label:"한여름 케어",c1:"#ffb347",c2:"#ff7e5f",
+  hook:"땀과 피지가 늘고 자외선이 강해지는 한여름. 끈적임은 줄이고 보습·진정은 챙기는 가벼운 루틴이 필요한 시기예요.",
+  sh:"한여름엔 이렇게",si:["가볍게 발리는 제형으로 끈적임 줄이기","외출 전·후 자외선 케어와 진정 챙기기","피지·노폐물은 산뜻하게 정리하기"],tags:["여름스킨케어","여름철피부","쿨링케어"]},
+ {k:["장마","비","습","장마철","우기"],emoji:"🌧️",label:"장마철 케어",c1:"#6a89cc",c2:"#374785",
+  hook:"습한데 피부 속은 오히려 건조한 장마철. 끈적임과 속건조를 동시에 잡는 유수분 밸런스 케어가 중요해요.",
+  sh:"장마철 피부 관리",si:["겉은 산뜻, 속은 촉촉한 유수분 밸런스 맞추기","눅눅한 날 노폐물·피지 정리로 피부결 정돈","끈적이지 않는 가벼운 보습 유지하기"],tags:["장마철피부","유수분밸런스","속건조"]},
+ {k:["환절기","간절기","계절","일교차"],emoji:"🍃",label:"환절기 케어",c1:"#3fae7a",c2:"#1c6a49",
+  hook:"일교차가 크고 건조해지는 환절기엔 피부 장벽이 쉽게 흔들립니다. 진정과 보습을 함께 챙겨야 하는 시기예요.",
+  sh:"환절기엔 이렇게",si:["약해진 장벽을 위한 진정·보습 강화","갑작스런 건조·당김엔 수분 레이어링","피부결이 거칠어지지 않게 꾸준히 케어"],tags:["환절기스킨케어","장벽케어","진정보습"]},
+ {k:["미세먼지","황사","대기","공해","미세 먼지"],emoji:"😷",label:"미세먼지 케어",c1:"#7f8c8d",c2:"#2c3e50",
+  hook:"미세먼지·황사가 심한 날엔 모공 속 노폐물과 피부 위 자극 요인이 늘어납니다. 꼼꼼한 세정과 진정 케어가 답이에요.",
+  sh:"미세먼지 많은 날",si:["외출 후 노폐물·피지 꼼꼼히 세정하기","자극받은 피부는 진정·보습으로 달래기","피부결을 정돈해 다음 날 컨디션 지키기"],tags:["미세먼지케어","황사철피부","딥클렌징"]},
+ {k:["겨울","한파","건조","난방","찬바람","winter"],emoji:"❄️",label:"겨울 보습",c1:"#74b9ff",c2:"#341f97",
+  hook:"찬바람과 실내 난방으로 수분이 빠르게 증발하는 겨울. 무너지기 쉬운 장벽을 지키는 고보습 루틴이 필요해요.",
+  sh:"겨울철 보습 루틴",si:["수분이 날아가지 않도록 보습막 챙기기","건조·당김이 심한 부위는 레이어링","찬바람에 예민해진 피부 진정 케어"],tags:["겨울보습","속건조","장벽케어"]},
+ {k:["명절","추석","설","설날","귀성","선물","기프트","gift"],emoji:"🎁",label:"명절·선물 시즌",c1:"#e056a8",c2:"#8e2b6b",
+  hook:"마음을 전하는 명절·선물 시즌. 받는 사람의 피부 고민까지 생각한 스킨케어 선물은 언제나 환영받죠.",
+  sh:"선물로 추천하는 이유",si:["부담 없는 가격대로 마음을 전하기 좋게","피부 타입을 크게 가리지 않는 무난한 구성","예쁜 패키지로 선물 만족도 높이기"],tags:["명절선물","스킨케어선물","선물추천"]},
+ {k:["블프","블랙프라이데이","세일","할인","빅세일","11.11","쇼핑"],emoji:"🛍️",label:"빅세일 시즌",c1:"#ff5d8f",c2:"#b3204e",
+  hook:"기다렸던 빅세일 시즌! 평소 눈여겨보던 스킨케어를 합리적으로 채울 절호의 타이밍이에요.",
+  sh:"세일 시즌 꿀팁",si:["자주 쓰는 데일리템은 넉넉히 채워두기","처음이라면 키트·소용량으로 부담 없이 입문","루틴을 한 번에 완성해 보기"],tags:["뷰티세일","할인템","쟁여템"]},
+ {k:["신학기","새학기","개학","입학","캠퍼스"],emoji:"🎒",label:"신학기 케어",c1:"#5f8de0",c2:"#2b3a8e",
+  hook:"새로운 시작을 앞둔 신학기. 바쁜 아침에도 빠르게 끝내는 간편 루틴으로 산뜻하게 출발해 보세요.",
+  sh:"신학기 간편 루틴",si:["바쁜 아침 빠르게 끝내는 단계 줄이기","첫인상을 좌우하는 매끈한 피부결 챙기기","가성비 좋게 데일리 루틴 갖추기"],tags:["신학기뷰티","간편루틴","학생화장품"]},
+ {k:["면접","취업","취준","발표","중요한 날"],emoji:"💼",label:"면접·중요한 날",c1:"#636e72",c2:"#2d3436",
+  hook:"긴장되는 면접이나 중요한 일정을 앞둔 날. 잡티 없이 깔끔하고 생기 있어 보이는 피부 컨디션이 자신감을 더해줍니다.",
+  sh:"중요한 날 전 준비",si:["전날 밤 진정·보습으로 컨디션 끌어올리기","화장이 잘 먹는 매끈한 베이스 만들기","생기 있어 보이는 맑은 피부 인상 연출"],tags:["면접메이크업베이스","중요한날","피부컨디션"]},
+ {k:["웨딩","결혼","브라이덜","신부","wedding"],emoji:"💍",label:"웨딩 케어",c1:"#e8a0bf",c2:"#a14e74",
+  hook:"인생의 가장 빛나는 날을 준비하는 예비 신부님께. 식 전 꾸준한 케어로 화사하고 매끈한 피부를 준비해 보세요.",
+  sh:"웨딩 D-데이 케어",si:["식 전까지 꾸준한 진정·보습으로 컨디션 관리","드레스에 어울리는 화사한 피부 인상 준비","메이크업이 잘 받는 매끈한 베이스 만들기"],tags:["웨딩케어","브라이덜뷰티","신부피부"]},
+ {k:["캠핑","등산","야외","아웃도어","나들이","피크닉"],emoji:"⛺",label:"야외·아웃도어",c1:"#27ae60",c2:"#145a32",
+  hook:"햇볕과 바람에 그대로 노출되는 야외 활동. 자외선·건조 자극 뒤엔 진정과 보습으로 피부를 달래주는 게 중요해요.",
+  sh:"아웃도어 피부 관리",si:["활동 전 자외선 케어 꼼꼼히 챙기기","땀·먼지는 산뜻하게 세정하기","돌아와서는 진정·보습으로 마무리"],tags:["야외활동","아웃도어뷰티","자외선케어"]},
+ {k:["야근","밤샘","피곤","수면부족","번아웃","야간"],emoji:"🌙",label:"야근·밤샘 케어",c1:"#5352ed",c2:"#1e1f4b",
+  hook:"잦은 야근과 밤샘으로 피부가 푸석하고 칙칙해 보이는 날. 짧은 시간에도 생기를 되찾아주는 집중 케어가 필요해요.",
+  sh:"지친 피부 응급 케어",si:["푸석한 피부에 수분 집중 충전하기","칙칙해 보일 땐 광채·생기 케어 더하기","짧게라도 진정 루틴으로 컨디션 회복"],tags:["야근피부","밤샘케어","꿀잠루틴"]},
+ {k:["크리스마스","연말","파티","송년","christmas","홀리데이"],emoji:"🎄",label:"연말·파티 시즌",c1:"#c0392b",c2:"#6e1a12",
+  hook:"모임과 파티가 많은 연말. 사진도 많이 찍는 시즌인 만큼, 화사하고 생기 있어 보이는 피부 컨디션을 준비해 두면 좋아요.",
+  sh:"파티 시즌 피부 준비",si:["메이크업이 화사하게 올라오는 베이스 만들기","건조한 실내에서 보습 놓치지 않기","사진 잘 받는 매끈한 피부결 챙기기"],tags:["연말파티","홀리데이뷰티","파티메이크업"]},
+];
+function resolveTheme(kw){
+  const s=(kw||"").toLowerCase();
+  for(const t of KW_THEMES){ if(t.k.some(w=>s.includes(w.toLowerCase()))) return t; }
+  return null;
+}
+function buildThemed(p, kw){
+  const t=resolveTheme(kw);
+  if(t) return {theme:t, label:t.label, hook:t.hook, sh:t.sh, si:t.si, tags:t.tags, custom:false};
+  // 라이브러리에 없는 임의 키워드 → 범용 템플릿
+  const g={emoji:"✨",label:kw,c1:"#ff5d8f",c2:"#8e2b6b"};
+  return {theme:g, label:kw, custom:true,
+    hook:`'${kw}', 요즘 관심이 높은 키워드죠. 이런 시기·상황엔 피부 컨디션이 흔들리기 쉬워, 기본 케어를 다시 점검해 볼 때입니다.`,
+    sh:`${kw}, 이럴 때 이렇게`,
+    si:[`${kw} 상황에 맞춰 무리 없는 데일리 루틴 유지하기`,`피부가 예민해지지 않도록 진정·보습 챙기기`,`${p.product}의 핵심 포인트를 일상 루틴에 더하기`],
+    tags:[kw.replace(/\s+/g,"")]};
+}
+
 /* ============================ 본문(HTML) 생성 ============================ */
-function renderBody(p){
+function renderBody(p, kw){
   let h="";
-  // 이미지 준비 + 슬롯별 인덱스
+  kw=(kw||"").trim();
+  const tm = kw ? buildThemed(p, kw) : null;
+  // SVG 인포그래픽 슬롯
   const imgs=buildImages(p);
   const idxOf={}; imgs.forEach((im,i)=>{ if(!(im.slot in idxOf)) idxOf[im.slot]=i; });
   const fig=(slot)=> (idxOf[slot]!=null) ? figHTML(p, idxOf[slot], imgs[idxOf[slot]]) : "";
 
+  // ★ 키워드 활성 시: 상단 테마 배너 + 도입 콜아웃 + 안내
+  if(tm){
+    h+=figHTML(p, 9, {svg:svgKwBanner(tm.theme, kw, p.product), name:p.product+"_"+kw+"_배너", cap:"키워드 테마 배너 · "+(tm.label)});
+    h+=`<div class="kwcallout">🔖 <b>${esc(tm.label)}</b> &nbsp;|&nbsp; ${tm.hook}</div>`;
+  }
   (p.hook||[]).forEach(t=> h+=`<p>${t}</p>`);
-  h+=fig("concept");                                  // ① 도입부 뒤 — 제품 컨셉
+  // ① 도입부 뒤 — 공식 제품 사진(히어로)
+  h+=figPhoto("products/"+PRODUCT_IMG[p.id], p.product+" 제품 이미지", "이미지 출처 · 론지 공식몰 longtoyou.com");
+  // ★ 키워드 전용 섹션
+  if(tm){
+    h+=`<h3>${esc(tm.sh)}</h3><ul class="dash">`+tm.si.map(t=>`<li>${t}</li>`).join("")+`</ul>`;
+  }
   if(p.pains){ h+=`<h3>이런 고민, 있으신가요?</h3><ul>`+p.pains.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
   if(p.lead) h+=`<p>${p.lead}</p>`;
   (p.sections||[]).forEach(s=>{
@@ -279,9 +409,11 @@ function renderBody(p){
     if(s.p) h+=`<p>${s.p}</p>`;
     if(s.items) h+=`<ul class="dash">`+s.items.map(t=>`<li>${t}</li>`).join("")+`</ul>`;
   });
+  // ② 성분/기술 뒤 — 무료 뷰티 스톡 이미지(분위기 비주얼)
+  h+=figPhoto("stock/"+STOCK_IMG[p.id], "뷰티 이미지", "이미지 · Pexels 무료 라이선스(상업적 이용 가능)");
   // 임상/인증 핵심 블록
   h+=`<h3>🔬 임상 · 인증으로 확인했습니다</h3>`;
-  h+=fig("data");                                     // ② 임상 섹션 안 — 데이터 그래프
+  h+=fig("data");                                     // ③ 임상 섹션 안 — 데이터 그래프
   if(p.clinical){
     h+=`<div class="clin"><p class="ct">${p.clinical.title}</p><table>`+
       p.clinical.data.map(d=>`<tr><td>${d.label}</td><td>${d.disp}</td></tr>`).join("")+
@@ -299,7 +431,10 @@ function renderBody(p){
   if(p.usage){ h+=`<h3>똑똑한 사용법</h3><ul class="dash">`+p.usage.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
   if(p.closing) h+=`<div class="closing">${p.closing}</div>`;
   if(p.event) h+=`<div class="event">🎁 ${p.event}</div>`;
-  if(p.tags) h+=`<p class="tags">${p.tags.map(t=>"#"+t).join("  ")}</p>`;
+  let tags=(p.tags||[]).slice();
+  if(tm){ tm.tags.forEach(t=>{ if(!tags.includes(t)) tags.unshift(t); }); }
+  if(tags.length) h+=`<p class="tags">${tags.map(t=>"#"+t).join("  ")}</p>`;
+  if(tm){ h+=`<div class="kwnote">📝 위 글은 <b>'${esc(kw)}'</b> 키워드에 맞춰 도입부·전용 섹션·해시태그·상단 배너가 자동 반영된 버전입니다. 임상·인증 데이터는 원본 그대로 유지됩니다.${tm.custom?" 사용자 입력 키워드 기반 자동 생성 문구이므로, 송출 전 표현·규제 검수를 권장합니다.":""}</div>`; }
   return h;
 }
 
@@ -768,22 +903,74 @@ const toast=document.getElementById('toast');
 
 function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>toast.classList.remove('show'),1600);}
 
+/* ===== 키워드 상태 (브라우저 저장) ===== */
+let kwState={};
+try{ kwState=JSON.parse(localStorage.getItem('longe_kw')||'{}'); }catch(e){ kwState={}; }
+function saveKw(){ try{ localStorage.setItem('longe_kw', JSON.stringify(kwState)); }catch(e){} }
+function titleWith(p, kw){
+  kw=(kw||'').trim();
+  if(!kw) return p.title;
+  const tm=buildThemed(p,kw);
+  return '['+esc(tm.label)+'] '+p.title;
+}
+function renderInto(id){
+  const p=POSTS.find(x=>x.id===id); if(!p) return;
+  const kw=(kwState[id]||'').trim();
+  document.getElementById('body'+id).innerHTML=renderBody(p,kw);
+  document.getElementById('title'+id).innerHTML=titleWith(p,kw);
+  const st=document.getElementById('kwst'+id);
+  if(st) st.innerHTML = kw ? "✅ '"+esc(kw)+"' 반영됨" : "";
+}
+function applyKw(id){
+  const v=document.getElementById('kwin'+id).value.trim();
+  if(!v){ resetKw(id); return; }
+  kwState[id]=v; saveKw(); renderInto(id);
+  showToast("'"+v+"' 키워드로 글을 업데이트했습니다");
+}
+function resetKw(id){
+  delete kwState[id]; saveKw();
+  const inp=document.getElementById('kwin'+id); if(inp) inp.value='';
+  renderInto(id);
+  showToast("원본 글로 되돌렸습니다");
+}
+function applyKwAll(){
+  const v=document.getElementById('gkwin').value.trim();
+  if(!v){ showToast('키워드를 입력하세요'); return; }
+  POSTS.forEach(p=>{ kwState[p.id]=v; const inp=document.getElementById('kwin'+p.id); if(inp) inp.value=v; });
+  saveKw(); POSTS.forEach(p=>renderInto(p.id));
+  showToast("전체 18편에 '"+v+"' 키워드를 반영했습니다");
+}
+function resetKwAll(){
+  kwState={}; saveKw();
+  POSTS.forEach(p=>{ const inp=document.getElementById('kwin'+p.id); if(inp) inp.value=''; renderInto(p.id); });
+  const g=document.getElementById('gkwin'); if(g) g.value='';
+  showToast("전체 글을 원본으로 되돌렸습니다");
+}
+
 POSTS.forEach((p,idx)=>{
   // 스케줄 행
   const tr=document.createElement('tr');
   tr.innerHTML=`<td class="d">${idx+1}회</td><td class="d">${p.date}</td><td class="d">${p.day}</td><td>${p.product}</td><td><a href="#post${p.id}">${p.title}</a></td>`;
   calBody.appendChild(tr);
 
-  // 카드 (이미지는 renderBody 안에서 본문 흐름에 맞춰 배치됨)
+  // 카드 (이미지·키워드 반영은 renderBody 안에서 처리)
+  const kw0=kwState[p.id]||'';
   const art=document.createElement('article');
   art.className='post'; art.id='post'+p.id; art.dataset.line=p.line;
   art.innerHTML=`
     <div class="phead">
       <div class="pmeta"><span class="day">${p.date} (${p.day})</span><span class="line">${p.line}</span><span class="cat">${p.cat}</span><span>${idx+1}/18회차</span></div>
-      <h2>${p.title}</h2>
+      <h2 id="title${p.id}">${titleWith(p,kw0)}</h2>
       <p class="prod">제품 · ${p.product}</p>
+      <div class="kwbar">
+        <span class="kwicon">🗓️ 키워드 반영</span>
+        <input class="kwin" id="kwin${p.id}" value="${kw0.replace(/"/g,'&quot;')}" placeholder="이 날짜 글에 반영할 키워드 (예: 휴가 시즌)" onkeydown="if(event.key==='Enter')applyKw(${p.id})">
+        <button class="apply" onclick="applyKw(${p.id})">글 업데이트</button>
+        <button class="reset" onclick="resetKw(${p.id})">되돌리기</button>
+        <span class="kwst" id="kwst${p.id}">${kw0?'✅ \''+esc(kw0)+'\' 반영됨':''}</span>
+      </div>
     </div>
-    <div class="bodywrap"><div class="body" id="body${p.id}">${renderBody(p)}</div></div>
+    <div class="bodywrap"><div class="body" id="body${p.id}">${renderBody(p,kw0)}</div></div>
     <div class="pfoot">
       <button class="cbtn primary" onclick="copyText(${p.id},this)">📋 본문 복사 (텍스트)</button>
       <button class="cbtn ghost" onclick="copyHtml(${p.id},this)">&lt;/&gt; HTML 복사</button>
@@ -809,7 +996,7 @@ function plainText(p){
   // 이미지는 텍스트로 못 옮기므로, 들어갈 위치에 안내 마커를 남긴다
   b.querySelectorAll('figure.infig').forEach(f=>{
     const cap=f.getAttribute('data-cap')||'이미지';
-    const mk=document.createTextNode('\n\n〔📷 '+cap+' 삽입 위치 — 사이트에서 「이미지 저장(PNG)」 후 이 자리에 업로드〕\n\n');
+    const mk=document.createTextNode('\n\n〔📷 '+cap+' — 이 자리에 이미지 삽입〕\n\n');
     f.replaceWith(mk);
   });
   let t='['+p.title+']\n제품: '+p.product+'  |  발행: '+p.date+' ('+p.day+')\n\n';
@@ -824,8 +1011,10 @@ function copyTitle(t,btn){navigator.clipboard.writeText(t).then(()=>{flash(btn,'
 function copyHtml(id,btn){
   const src=document.getElementById('body'+id);
   const b=src.cloneNode(true);
-  // 캡션/다운로드 버튼은 제외하고 이미지(SVG)는 본문에 그대로 포함
+  // 캡션/다운로드 버튼은 제외하고 이미지는 본문에 그대로 포함
   b.querySelectorAll('figure.infig figcaption').forEach(e=>e.remove());
+  // 상대경로 이미지를 절대 URL로 변환(다른 에디터에 붙여도 보이도록)
+  b.querySelectorAll('img').forEach(im=>{ const s=im.getAttribute('src'); if(s && !/^https?:/i.test(s)) im.setAttribute('src', BASE+s); });
   const html=b.innerHTML;
   if(window.ClipboardItem){
     const data=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([b.innerText],{type:'text/plain'})});
