@@ -53,12 +53,12 @@
   .pmeta .cat{background:var(--chip);border-radius:6px;padding:3px 9px}
   .phead h2{margin:6px 0 2px;font-size:21px;letter-spacing:-.4px;line-height:1.35}
   .prod{font-size:13px;color:var(--sub);margin:0 0 2px}
-  .gallery{display:flex;gap:12px;flex-wrap:wrap;padding:14px 22px 4px;background:#faf9f7}
-  .figbox{flex:1 1 240px;min-width:240px}
-  .figbox svg{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff;display:block}
-  .figbox .dl{margin-top:6px;text-align:right}
-  .figbox .dl button{font-size:11.5px;color:var(--sub);background:none;border:none;cursor:pointer;text-decoration:underline}
-  .figbox .dl button:hover{color:var(--accent)}
+  figure.infig{margin:20px 0}
+  figure.infig svg{width:100%;height:auto;border-radius:14px;border:1px solid var(--line);background:#fff;display:block;box-shadow:0 2px 12px rgba(31,35,40,.06)}
+  figure.infig figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--sub)}
+  figure.infig figcaption .cap{font-weight:600}
+  figure.infig .dlmini{font-size:11.5px;color:var(--sub);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 11px;cursor:pointer;white-space:nowrap;transition:.15s}
+  figure.infig .dlmini:hover{color:var(--accent);border-color:var(--accent)}
   .bodywrap{padding:8px 22px 4px}
   .body h3{font-size:16px;margin:22px 0 8px;padding-left:11px;border-left:4px solid var(--accent)}
   .body p{margin:10px 0}
@@ -245,20 +245,33 @@ function svgStat(p, st){
   </svg>`;
 }
 
-/* 이미지 묶음 생성: concept + (chart|stat) + certs (최대 3) */
+/* 이미지 묶음 생성: concept + (chart|stat) + certs (최대 3) · 본문 내 배치 슬롯 지정 */
 function buildImages(p){
   const imgs=[];
-  imgs.push({name:p.product+"_컨셉", svg:svgConcept(p)});
-  if(p.clinical){ imgs.push({name:p.product+"_임상데이터", svg:svgChart(p,p.clinical)}); }
-  else if(p.bigstat){ imgs.push({name:p.product+"_핵심수치", svg:svgStat(p,p.bigstat)}); }
-  if(p.certs && p.certs.length){ imgs.push({name:p.product+"_인증", svg:svgCerts(p,"인증 · 검증 포인트",p.certs)}); }
+  imgs.push({name:p.product+"_컨셉", svg:svgConcept(p), slot:"concept", cap:"제품 컨셉 이미지"});
+  if(p.clinical){ imgs.push({name:p.product+"_임상데이터", svg:svgChart(p,p.clinical), slot:"data", cap:"임상 데이터 그래프"}); }
+  else if(p.bigstat){ imgs.push({name:p.product+"_핵심수치", svg:svgStat(p,p.bigstat), slot:"data", cap:"핵심 수치 이미지"}); }
+  if(p.certs && p.certs.length){ imgs.push({name:p.product+"_인증", svg:svgCerts(p,"인증 · 검증 포인트",p.certs), slot:"cert", cap:"인증·검증 포인트"}); }
   return imgs.slice(0,3);
+}
+/* 본문 인라인 figure HTML */
+function figHTML(p, idx, im){
+  const safe=(im.name||"image").replace(/'/g,"");
+  return `<figure class="infig" data-cap="${im.cap||""}"><div id="svg_${p.id}_${idx}">${im.svg}</div>`
+    +`<figcaption><span class="cap">▲ ${im.cap||""}</span>`
+    +`<button class="dlmini" onclick="dlPng(${p.id},${idx},'${safe}')">⬇ 이미지 저장(PNG)</button></figcaption></figure>`;
 }
 
 /* ============================ 본문(HTML) 생성 ============================ */
 function renderBody(p){
   let h="";
+  // 이미지 준비 + 슬롯별 인덱스
+  const imgs=buildImages(p);
+  const idxOf={}; imgs.forEach((im,i)=>{ if(!(im.slot in idxOf)) idxOf[im.slot]=i; });
+  const fig=(slot)=> (idxOf[slot]!=null) ? figHTML(p, idxOf[slot], imgs[idxOf[slot]]) : "";
+
   (p.hook||[]).forEach(t=> h+=`<p>${t}</p>`);
+  h+=fig("concept");                                  // ① 도입부 뒤 — 제품 컨셉
   if(p.pains){ h+=`<h3>이런 고민, 있으신가요?</h3><ul>`+p.pains.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
   if(p.lead) h+=`<p>${p.lead}</p>`;
   (p.sections||[]).forEach(s=>{
@@ -268,6 +281,7 @@ function renderBody(p){
   });
   // 임상/인증 핵심 블록
   h+=`<h3>🔬 임상 · 인증으로 확인했습니다</h3>`;
+  h+=fig("data");                                     // ② 임상 섹션 안 — 데이터 그래프
   if(p.clinical){
     h+=`<div class="clin"><p class="ct">${p.clinical.title}</p><table>`+
       p.clinical.data.map(d=>`<tr><td>${d.label}</td><td>${d.disp}</td></tr>`).join("")+
@@ -279,6 +293,7 @@ function renderBody(p){
       `</table><div class="src">${p.clinical2.foot||""}</div></div>`;
   }
   if(p.certs){ h+=`<div class="badges">`+p.certs.map(t=>`<span>✓ ${t}</span>`).join("")+`</div>`; }
+  h+=fig("cert");                                     // ③ 인증 배지 뒤 — 인증·검증 카드
   if(p.caution){ h+=`<div class="caution">📌 ${p.caution}</div>`; }
   if(p.recommend){ h+=`<h3>이런 피부에 추천해요</h3><ul>`+p.recommend.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
   if(p.usage){ h+=`<h3>똑똑한 사용법</h3><ul class="dash">`+p.usage.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
@@ -759,11 +774,7 @@ POSTS.forEach((p,idx)=>{
   tr.innerHTML=`<td class="d">${idx+1}회</td><td class="d">${p.date}</td><td class="d">${p.day}</td><td>${p.product}</td><td><a href="#post${p.id}">${p.title}</a></td>`;
   calBody.appendChild(tr);
 
-  // 이미지
-  const imgs=buildImages(p);
-  const gallery=imgs.map((im,i)=>`<div class="figbox"><div id="svg_${p.id}_${i}">${im.svg}</div><div class="dl"><button onclick="dlPng(${p.id},${i},'${im.name.replace(/'/g,"")}')">⬇ 이미지 저장(PNG)</button></div></div>`).join("");
-
-  // 카드
+  // 카드 (이미지는 renderBody 안에서 본문 흐름에 맞춰 배치됨)
   const art=document.createElement('article');
   art.className='post'; art.id='post'+p.id; art.dataset.line=p.line;
   art.innerHTML=`
@@ -772,7 +783,6 @@ POSTS.forEach((p,idx)=>{
       <h2>${p.title}</h2>
       <p class="prod">제품 · ${p.product}</p>
     </div>
-    <div class="gallery">${gallery}</div>
     <div class="bodywrap"><div class="body" id="body${p.id}">${renderBody(p)}</div></div>
     <div class="pfoot">
       <button class="cbtn primary" onclick="copyText(${p.id},this)">📋 본문 복사 (텍스트)</button>
@@ -794,7 +804,14 @@ document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{
 
 /* 복사 기능 */
 function plainText(p){
-  const b=document.getElementById('body'+p.id);
+  const src=document.getElementById('body'+p.id);
+  const b=src.cloneNode(true);
+  // 이미지는 텍스트로 못 옮기므로, 들어갈 위치에 안내 마커를 남긴다
+  b.querySelectorAll('figure.infig').forEach(f=>{
+    const cap=f.getAttribute('data-cap')||'이미지';
+    const mk=document.createTextNode('\n\n〔📷 '+cap+' 삽입 위치 — 사이트에서 「이미지 저장(PNG)」 후 이 자리에 업로드〕\n\n');
+    f.replaceWith(mk);
+  });
   let t='['+p.title+']\n제품: '+p.product+'  |  발행: '+p.date+' ('+p.day+')\n\n';
   t+=b.innerText.replace(/\n{3,}/g,'\n\n').trim();
   return t;
@@ -805,7 +822,10 @@ function copyText(id,btn){
 }
 function copyTitle(t,btn){navigator.clipboard.writeText(t).then(()=>{flash(btn,'✅ 복사됨');showToast('제목이 복사되었습니다');});}
 function copyHtml(id,btn){
-  const b=document.getElementById('body'+id);
+  const src=document.getElementById('body'+id);
+  const b=src.cloneNode(true);
+  // 캡션/다운로드 버튼은 제외하고 이미지(SVG)는 본문에 그대로 포함
+  b.querySelectorAll('figure.infig figcaption').forEach(e=>e.remove());
   const html=b.innerHTML;
   if(window.ClipboardItem){
     const data=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([b.innerText],{type:'text/plain'})});
