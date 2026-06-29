@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>론지(Lon.G) 블로그 자동 발행 콘텐츠 · 월·수·금 스케줄</title>
+<style>
+  :root{
+    --bg:#f6f5f3; --card:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e7e4df;
+    --pink:#ff5d8f; --pink-soft:#ffe1ea; --accent:#e0436f; --chip:#f2efe9;
+    --good:#2f9e6f; --warn:#b9842b; --shadow:0 6px 24px rgba(31,35,40,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:980px;margin:0 auto;padding:0 18px}
+  header.top{background:linear-gradient(135deg,#2a2d33,#3c4047);color:#fff;padding:34px 0 28px}
+  header.top h1{margin:0 0 6px;font-size:26px;letter-spacing:-.5px}
+  header.top .slo{color:#ffd5e1;font-weight:700;font-size:14px;letter-spacing:1px}
+  header.top p{margin:10px 0 0;color:#c8ccd2;font-size:14px;max-width:720px}
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .meta-row .pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+       padding:6px 12px;border-radius:999px;font-size:12.5px;color:#fff}
+  .notice{background:#fff7ed;border:1px solid #f3d9ad;color:#7a5a1e;border-radius:12px;
+       padding:14px 16px;margin:20px 0;font-size:13px}
+  .notice b{color:#9a6a12}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:22px 0 8px}
+  .controls .lbl{font-size:13px;color:var(--sub);margin-right:4px}
+  .fbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;
+       font-size:13px;cursor:pointer;color:var(--sub);transition:.15s}
+  .fbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .fbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  /* schedule */
+  details.sched{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:14px 0 6px;box-shadow:var(--shadow)}
+  details.sched>summary{cursor:pointer;padding:16px 18px;font-weight:700;font-size:15px;list-style:none}
+  details.sched>summary::-webkit-details-marker{display:none}
+  details.sched>summary::before{content:"▸ ";color:var(--accent)}
+  details.sched[open]>summary::before{content:"▾ "}
+  table.cal{width:100%;border-collapse:collapse;font-size:13px}
+  table.cal th,table.cal td{padding:9px 12px;border-top:1px solid var(--line);text-align:left}
+  table.cal th{background:#faf8f5;color:var(--sub);font-weight:600}
+  table.cal td.d{white-space:nowrap;color:var(--sub)}
+  table.cal a{color:var(--accent);text-decoration:none;font-weight:600}
+  /* post card */
+  article.post{background:var(--card);border:1px solid var(--line);border-radius:18px;
+       padding:0;margin:22px 0;box-shadow:var(--shadow);overflow:hidden}
+  .phead{padding:20px 22px 4px}
+  .pmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--sub);margin-bottom:8px}
+  .pmeta .day{background:var(--ink);color:#fff;border-radius:6px;padding:3px 9px;font-weight:700}
+  .pmeta .line{background:var(--pink-soft);color:var(--accent);border-radius:6px;padding:3px 9px;font-weight:700}
+  .pmeta .cat{background:var(--chip);border-radius:6px;padding:3px 9px}
+  .phead h2{margin:6px 0 2px;font-size:21px;letter-spacing:-.4px;line-height:1.35}
+  .prod{font-size:13px;color:var(--sub);margin:0 0 2px}
+  .gallery{display:flex;gap:12px;flex-wrap:wrap;padding:14px 22px 4px;background:#faf9f7}
+  .figbox{flex:1 1 240px;min-width:240px}
+  .figbox svg{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff;display:block}
+  .figbox .dl{margin-top:6px;text-align:right}
+  .figbox .dl button{font-size:11.5px;color:var(--sub);background:none;border:none;cursor:pointer;text-decoration:underline}
+  .figbox .dl button:hover{color:var(--accent)}
+  .bodywrap{padding:8px 22px 4px}
+  .body h3{font-size:16px;margin:22px 0 8px;padding-left:11px;border-left:4px solid var(--accent)}
+  .body p{margin:10px 0}
+  .body ul{margin:8px 0;padding-left:4px;list-style:none}
+  .body ul li{position:relative;padding:3px 0 3px 24px}
+  .body ul li::before{content:"✓";position:absolute;left:2px;color:var(--good);font-weight:800}
+  .body ul.dash li::before{content:"·";left:8px;color:var(--accent);font-size:20px;top:-2px}
+  .clin{background:#fff5f8;border:1px solid #ffd7e3;border-radius:14px;padding:14px 16px;margin:14px 0}
+  .clin .ct{font-weight:800;color:var(--accent);margin:0 0 8px;font-size:14px}
+  .clin table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .clin td{padding:5px 4px;border-bottom:1px dashed #ffd7e3}
+  .clin td:last-child{text-align:right;font-weight:800;color:var(--accent);white-space:nowrap}
+  .clin .src{font-size:11.5px;color:#a78089;margin-top:8px}
+  .badges{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+  .badges span{background:#eefaf3;border:1px solid #bfe8d2;color:#1f7a52;border-radius:999px;
+       padding:5px 11px;font-size:12.5px;font-weight:600}
+  .caution{background:#fff7ed;border:1px solid #f3d9ad;color:#7a5a1e;border-radius:10px;padding:10px 13px;font-size:12.5px;margin:12px 0}
+  .tags{margin:14px 0 4px;color:#8a93a0;font-size:13px}
+  .closing{background:#faf8f5;border-radius:12px;padding:12px 14px;margin:14px 0;font-size:14px}
+  .event{background:#2a2d33;color:#ffe1ea;border-radius:12px;padding:11px 14px;margin:12px 0;font-size:13px;font-weight:600}
+  .pfoot{display:flex;flex-wrap:wrap;gap:9px;padding:14px 22px 20px;border-top:1px solid var(--line);background:#faf9f7}
+  .cbtn{border:none;border-radius:10px;padding:10px 16px;font-size:13.5px;font-weight:700;cursor:pointer;transition:.15s}
+  .cbtn.primary{background:var(--accent);color:#fff}
+  .cbtn.primary:hover{background:#c5345d}
+  .cbtn.ghost{background:#fff;border:1px solid var(--line);color:var(--sub)}
+  .cbtn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .cbtn.ok{background:var(--good)!important;color:#fff!important}
+  footer.foot{color:var(--sub);font-size:12.5px;text-align:center;padding:30px 18px 50px;line-height:1.8}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;
+       background:#1f2328;color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;
+       transition:.25s;pointer-events:none;z-index:50;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media(max-width:560px){.phead h2{font-size:18px}.gallery{padding:12px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="slo">LONG LASTING BEAUTY · 오래 지속되는 아름다움</div>
+    <h1>론지(Lon.G) 블로그 자동 발행 콘텐츠</h1>
+    <p>제품별 블로그 글을 <b>월·수·금 주 3회</b> 발행하도록 구성했습니다. 각 글에는 식약처 화장품 표시·광고 지침을 고려한 <b>인증·임상 데이터</b>와 관련 이미지(1~3장)가 포함되어 있습니다. 카드별 <b>복사</b> 버튼으로 블로그 에디터에 바로 붙여넣어 사용하세요.</p>
+    <div class="meta-row">
+      <span class="pill">📅 발행 주기 : 월 · 수 · 금</span>
+      <span class="pill">🗂 총 18편 · 약 6주 분량</span>
+      <span class="pill">🌱 비건 · 클린 뷰티</span>
+      <span class="pill">🔬 임상 · 인증 수치 포함</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="notice">
+    <b>⚠️ 송출 전 확인 사항</b><br>
+    본 콘텐츠의 임상·인증 수치(예: 보습 110%, 장벽 82% 개선, 모공 개선율, 172배 항산화, 48시간 보습 등)는
+    <b>론지 공식 제품 자료(AI Knowledge Base)·카탈로그에 기재된 인체 적용시험/인체 외 시험·인증 데이터</b>를 근거로 작성되었습니다.
+    화장품 표시·광고 실증 규정상 송출하려면 <b>해당 실증 자료(시험기관·일자·대상자 등) 보유가 필수</b>이며,
+    최종 발행 전 <b>책임판매업자 내부 법무·QA 검토</b>를 권장합니다. 기능성(미백·주름개선·자외선 차단) 표현은 기능성 심사·보고된 제품에 한해 사용했습니다.
+  </div>
+
+  <div class="controls">
+    <span class="lbl">라인 필터</span>
+    <button class="fbtn active" data-f="all">전체</button>
+    <button class="fbtn" data-f="모공싹">모공싹·핑크애플</button>
+    <button class="fbtn" data-f="클렌징">클렌징</button>
+    <button class="fbtn" data-f="시카">시카·진정</button>
+    <button class="fbtn" data-f="브라이트닝">브라이트닝</button>
+    <button class="fbtn" data-f="프리미엄">프리미엄</button>
+    <button class="fbtn" data-f="선케어">선케어</button>
+    <button class="fbtn" data-f="마스크">마스크팩</button>
+    <button class="fbtn" data-f="올인원">올인원</button>
+  </div>
+
+  <details class="sched">
+    <summary>📅 전체 발행 스케줄 한눈에 보기 (클릭)</summary>
+    <table class="cal"><thead><tr><th>회차</th><th>발행일</th><th>요일</th><th>제품</th><th>제목</th></tr></thead>
+    <tbody id="calBody"></tbody></table>
+  </details>
+
+  <div id="posts"></div>
+</div>
+
+<footer class="foot">
+  론지화장품(주식회사 명성코퍼레이션) · 공식몰 longtoyou.com · 인스타그램 @lon.g_official<br>
+  본 페이지는 블로그 발행용 사내 콘텐츠 도구이며, 임상·인증 표현은 실증 자료 보유 및 법무·QA 검토 후 송출하시기 바랍니다.<br>
+  화장품 표시·광고 관리 지침(식약처, 2025.8.14. 안내서-0086-07) 기준 자체 검수 적용.
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================ 색상 팔레트(라인별) ============================ */
+const PAL = {
+  "모공싹":   {a:"#ff5d8f", b:"#ffe1ea", ink:"#b3204e"},
+  "클렌징":   {a:"#5b6b7a", b:"#e6ebf0", ink:"#34414d"},
+  "시카":     {a:"#2f9e6f", b:"#dff3e9", ink:"#1c6a49"},
+  "브라이트닝":{a:"#f1932a", b:"#ffefdb", ink:"#a45f12"},
+  "프리미엄": {a:"#b08a37", b:"#f3ecd9", ink:"#7a5d1d"},
+  "선케어":   {a:"#ff9f43", b:"#ffeed8", ink:"#b56a12"},
+  "마스크":   {a:"#2aa9a0", b:"#d9f2f0", ink:"#197169"},
+  "올인원":   {a:"#4a90d9", b:"#dbe9fb", ink:"#2b5e96"}
+};
+
+/* ============================ 이미지(SVG) 생성기 ============================ */
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function svgConcept(p){
+  const c = PAL[p.line];
+  const ings = (p.concept&&p.concept.ings)||[];
+  let pills="", x=46, y=300;
+  ings.forEach(t=>{ const w=28+t.length*15.5;
+    if(x+w>760){x=46;y+=44;}
+    pills+=`<g><rect x="${x}" y="${y}" rx="16" ry="16" width="${w}" height="32" fill="#ffffff" opacity=".92"/><text x="${x+w/2}" y="${y+21}" font-size="15" fill="${c.ink}" text-anchor="middle" font-weight="700">${esc(t)}</text></g>`;
+    x+=w+10;
+  });
+  const h=Math.max(380,y+70);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${h}" viewBox="0 0 800 ${h}" font-family="Pretendard,'Malgun Gothic',sans-serif">
+  <defs><linearGradient id="g${p.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.a}"/><stop offset="1" stop-color="${c.ink}"/></linearGradient></defs>
+  <rect width="800" height="${h}" rx="20" fill="url(#g${p.id})"/>
+  <circle cx="690" cy="90" r="160" fill="#ffffff" opacity=".07"/>
+  <circle cx="120" cy="${h-60}" r="120" fill="#ffffff" opacity=".06"/>
+  <text x="46" y="78" font-size="16" letter-spacing="3" fill="#ffffff" opacity=".85" font-weight="700">Lon.G · ${esc(p.line==="모공싹"?"PINK APPLE PURE":p.lineEn||"SKINCARE")}</text>
+  <text x="46" y="150" font-size="40" fill="#ffffff" font-weight="800">${esc(p.product)}</text>
+  <text x="46" y="196" font-size="20" fill="#ffffff" opacity=".92">${esc((p.concept&&p.concept.tag)||p.title)}</text>
+  <rect x="46" y="226" width="${20+ ((p.concept&&p.concept.badge)||'비건·클린 뷰티').length*15}" height="34" rx="17" fill="#ffffff" opacity=".18"/>
+  <text x="64" y="249" font-size="15" fill="#fff" font-weight="700">🌱 ${esc((p.concept&&p.concept.badge)||'비건·클린 뷰티')}</text>
+  ${pills}
+  <text x="754" y="${h-26}" font-size="14" fill="#ffffff" opacity=".7" text-anchor="end">Long Lasting Beauty</text>
+  </svg>`;
+}
+
+function svgChart(p, chart){
+  const c=PAL[p.line];
+  const data=chart.data; const top=72; const bh=34; const gap=22; const left=190; const right=740;
+  const h=top+ data.length*(bh+gap)+58;
+  let bars="";
+  data.forEach((d,i)=>{
+    const y=top+i*(bh+gap);
+    const w=Math.max(6,(right-left)*Math.min(d.val,100)/100);
+    bars+=`<text x="178" y="${y+bh/2+5}" font-size="15" fill="#34414d" text-anchor="end" font-weight="600">${esc(d.label)}</text>
+    <rect x="${left}" y="${y}" width="${right-left}" height="${bh}" rx="8" fill="${c.b}"/>
+    <rect x="${left}" y="${y}" width="${w}" height="${bh}" rx="8" fill="${c.a}"/>
+    <text x="${left+w-12}" y="${y+bh/2+6}" font-size="16" fill="#fff" text-anchor="end" font-weight="800">${esc(d.disp)}</text>`;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${h}" viewBox="0 0 800 ${h}" font-family="Pretendard,'Malgun Gothic',sans-serif">
+  <rect width="800" height="${h}" rx="20" fill="#ffffff"/>
+  <rect x="0" y="0" width="800" height="${h}" rx="20" fill="none" stroke="${c.b}" stroke-width="2"/>
+  <rect x="28" y="26" width="8" height="26" rx="4" fill="${c.a}"/>
+  <text x="48" y="46" font-size="21" fill="#1f2328" font-weight="800">${esc(chart.title)}</text>
+  <text x="48" y="${top-12}" font-size="13" fill="#8a93a0">${esc(chart.sub||"")}</text>
+  ${bars}
+  <text x="48" y="${h-22}" font-size="12" fill="#aeb4bc">${esc(chart.foot||"※ 론지 공식 제품 자료 기재 수치 · 실증 자료 보유 필요")}</text>
+  </svg>`;
+}
+
+function svgCerts(p, title, items){
+  const c=PAL[p.line];
+  const cols=2, rowH=58, padTop=70;
+  const rows=Math.ceil(items.length/cols);
+  const h=padTop+rows*rowH+26;
+  let cells="";
+  items.forEach((t,i)=>{
+    const cx=40+(i%cols)*375, cy=padTop+Math.floor(i/cols)*rowH;
+    cells+=`<g><rect x="${cx}" y="${cy}" width="350" height="46" rx="12" fill="${c.b}"/>
+    <circle cx="${cx+26}" cy="${cy+23}" r="13" fill="${c.a}"/>
+    <text x="${cx+26}" y="${cy+28}" font-size="15" fill="#fff" text-anchor="middle" font-weight="800">✓</text>
+    <text x="${cx+50}" y="${cy+29}" font-size="15.5" fill="${c.ink}" font-weight="700">${esc(t)}</text></g>`;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${h}" viewBox="0 0 800 ${h}" font-family="Pretendard,'Malgun Gothic',sans-serif">
+  <rect width="800" height="${h}" rx="20" fill="#ffffff" stroke="${c.b}" stroke-width="2"/>
+  <rect x="28" y="26" width="8" height="26" rx="4" fill="${c.a}"/>
+  <text x="48" y="46" font-size="21" fill="#1f2328" font-weight="800">${esc(title)}</text>
+  ${cells}</svg>`;
+}
+
+function svgStat(p, st){
+  const c=PAL[p.line];
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="300" viewBox="0 0 800 300" font-family="Pretendard,'Malgun Gothic',sans-serif">
+  <defs><linearGradient id="s${p.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.a}"/><stop offset="1" stop-color="${c.ink}"/></linearGradient></defs>
+  <rect width="800" height="300" rx="20" fill="url(#s${p.id})"/>
+  <circle cx="660" cy="150" r="150" fill="#fff" opacity=".08"/>
+  <text x="60" y="120" font-size="18" fill="#fff" opacity=".85" font-weight="700">${esc(st.label)}</text>
+  <text x="56" y="218" font-size="96" fill="#fff" font-weight="800">${esc(st.stat)}</text>
+  <text x="60" y="258" font-size="17" fill="#fff" opacity=".9">${esc(st.sub||"")}</text>
+  </svg>`;
+}
+
+/* 이미지 묶음 생성: concept + (chart|stat) + certs (최대 3) */
+function buildImages(p){
+  const imgs=[];
+  imgs.push({name:p.product+"_컨셉", svg:svgConcept(p)});
+  if(p.clinical){ imgs.push({name:p.product+"_임상데이터", svg:svgChart(p,p.clinical)}); }
+  else if(p.bigstat){ imgs.push({name:p.product+"_핵심수치", svg:svgStat(p,p.bigstat)}); }
+  if(p.certs && p.certs.length){ imgs.push({name:p.product+"_인증", svg:svgCerts(p,"인증 · 검증 포인트",p.certs)}); }
+  return imgs.slice(0,3);
+}
+
+/* ============================ 본문(HTML) 생성 ============================ */
+function renderBody(p){
+  let h="";
+  (p.hook||[]).forEach(t=> h+=`<p>${t}</p>`);
+  if(p.pains){ h+=`<h3>이런 고민, 있으신가요?</h3><ul>`+p.pains.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
+  if(p.lead) h+=`<p>${p.lead}</p>`;
+  (p.sections||[]).forEach(s=>{
+    h+=`<h3>${s.h}</h3>`;
+    if(s.p) h+=`<p>${s.p}</p>`;
+    if(s.items) h+=`<ul class="dash">`+s.items.map(t=>`<li>${t}</li>`).join("")+`</ul>`;
+  });
+  // 임상/인증 핵심 블록
+  h+=`<h3>🔬 임상 · 인증으로 확인했습니다</h3>`;
+  if(p.clinical){
+    h+=`<div class="clin"><p class="ct">${p.clinical.title}</p><table>`+
+      p.clinical.data.map(d=>`<tr><td>${d.label}</td><td>${d.disp}</td></tr>`).join("")+
+      `</table><div class="src">${p.clinical.foot||"※ 론지 공식 제품 자료 기재 수치 · 송출 시 실증 자료 보유 필요"}</div></div>`;
+  }
+  if(p.clinical2){
+    h+=`<div class="clin"><p class="ct">${p.clinical2.title}</p><table>`+
+      p.clinical2.data.map(d=>`<tr><td>${d.label}</td><td>${d.disp}</td></tr>`).join("")+
+      `</table><div class="src">${p.clinical2.foot||""}</div></div>`;
+  }
+  if(p.certs){ h+=`<div class="badges">`+p.certs.map(t=>`<span>✓ ${t}</span>`).join("")+`</div>`; }
+  if(p.caution){ h+=`<div class="caution">📌 ${p.caution}</div>`; }
+  if(p.recommend){ h+=`<h3>이런 피부에 추천해요</h3><ul>`+p.recommend.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
+  if(p.usage){ h+=`<h3>똑똑한 사용법</h3><ul class="dash">`+p.usage.map(t=>`<li>${t}</li>`).join("")+`</ul>`; }
+  if(p.closing) h+=`<div class="closing">${p.closing}</div>`;
+  if(p.event) h+=`<div class="event">🎁 ${p.event}</div>`;
+  if(p.tags) h+=`<p class="tags">${p.tags.map(t=>"#"+t).join("  ")}</p>`;
+  return h;
+}
+
+/* ============================ 데이터 (18편) ============================ */
+const POSTS = [
+/* 1 */{
+  id:1, date:"2026-06-29", day:"월", line:"모공싹", lineEn:"PINK APPLE PURE", cat:"토너",
+  product:"핑크애플퓨어 토너", title:"모공·각질·피부결, 토너 하나로 정돈되는 이유",
+  concept:{tag:"모공·각질·피부결을 한 번에 정돈하는 데일리 모공 토너", badge:"화해 모공 1위 라인",
+    ings:["아오리 사과수","히알루론산","식물성 콜라겐","나이아신아마이드","아데노신","모공 특허 3종"]},
+  hook:["세안 직후엔 매끈한데, 시간이 지나면 다시 도드라져 보이는 모공.",
+    "수분을 채워도 겉돌고 각질까지 일어난다면, 토너 단계부터 점검해 볼 차례예요."],
+  pains:["겉은 번들거리는데 속은 당기는 수부지 피부","화장이 모공·각질에 끼어 잘 안 먹는 피부","결이 거칠어 칙칙해 보이는 피부"],
+  lead:"핑크애플퓨어 토너는 모공을 단순히 '조이는' 것이 아니라 피지·각질·수분·피부결을 함께 정돈하는 데 초점을 둔 데일리 모공 토너입니다. 아오리 사과수(비타민C·폴리페놀 등 항산화 원료 스토리)를 베이스로, 모공 관리 3가지 특허 성분과 히알루론산·식물성 콜라겐을 담았습니다.",
+  sections:[
+    {h:"핵심 성분 & 기술", items:[
+      "아오리 사과수 — 생기·항산화 원료 스토리의 베이스",
+      "모공 관리 3가지 특허 성분 — 피지·모공·피부결 관리 포인트",
+      "히알루론산 — 수분을 끌어당겨 속보습",
+      "식물성 콜라겐(하이드롤라이즈드익스텐신) — 탄력 있는 피부 인상",
+      "나이아신아마이드·아데노신 — 미백·주름개선 기능성 성분 조합"]}
+  ],
+  clinical:{title:"핑크애플퓨어 토너 임상 데이터", foot:"※ 론지 공식 제품 자료 기재 수치 · 인체 적용시험 결과 · 송출 시 실증 자료 보유 필요",
+    data:[
+      {label:"모공 볼륨 개선",val:65.78,disp:"65.78%"},
+      {label:"모공 면적 개선",val:64.34,disp:"64.34%"},
+      {label:"모공 수 개선",val:52.97,disp:"52.97%"},
+      {label:"각질 개선",val:52.41,disp:"52.41%"},
+      {label:"모공 부피 개선",val:50.00,disp:"50.00%"}]},
+  certs:["사용 만족도 100%","미백·주름개선 기능성","피부 자극 테스트 완료","모공 관리 3가지 특허 성분","비건·클린 뷰티"],
+  recommend:["모공·각질이 함께 고민인 피부","겉은 번들, 속은 건조한 수부지","화장이 잘 안 먹어 고민인 피부"],
+  usage:["세안 후 가장 먼저, 화장솜 또는 손으로 얼굴 전체에 부드럽게 흡수",
+    "각질이 신경 쓰이는 날엔 화장솜으로 결 방향대로 가볍게 닦아내듯",
+    "토너 → 앰플 → 크림 순서로 모공싹 루틴 완성"],
+  closing:"모공은 '없애는' 것이 아니라 꾸준히 '정돈'하는 것. 토너 한 단계의 차이가 화장 잘 먹는 매끈한 피부결을 만듭니다.",
+  event:"2026 화해 상반기 효능/효과 어워드 '모공 부문 1위' 기념 1+1 이벤트 진행 중 (longtoyou.com)",
+  tags:["론지","모공토너","핑크애플","수부지","모공관리","각질토너","화잘먹","비건화장품"]
+},
+/* 2 */{
+  id:2, date:"2026-07-01", day:"수", line:"모공싹", lineEn:"PINK APPLE PURE", cat:"앰플",
+  product:"핑크애플퓨어 앰플", title:"모공과 광채를 동시에, 고농축 모공 앰플의 임상 데이터",
+  concept:{tag:"모공 케어 + 속광까지, 고농축 모공 앰플", badge:"모공싹 대표 앰플",
+    ings:["아오리 사과수","히알루론산","식물성 콜라겐","나이아신아마이드","아데노신","모공 특허 3종"]},
+  hook:["모공은 정돈하고 싶은데, 광채는 포기하기 싫은 분들께.",
+    "핑크애플퓨어 앰플은 모공 케어와 속광 케어를 한 단계에서 보여주는 고농축 앰플입니다."],
+  pains:["모공이 도드라져 피부가 칙칙해 보이는 날","속광·물광이 부족해 생기 없어 보이는 피부","앰플이 무겁고 흡수가 더딘 게 싫은 피부"],
+  lead:"고농축 제형이지만 빠르게 흡수되어, 모공·피지·피부결을 정돈하면서 맑고 윤기 있는 인상까지 더해줍니다. 모공싹 라인 중에서도 임상 수치가 가장 높은 대표 제품이에요.",
+  sections:[
+    {h:"핵심 포인트", items:[
+      "모공 관리 3가지 특허 성분으로 피지·모공·피부결 집중 케어",
+      "아오리 사과수 항산화 베이스 + 히알루론산 속보습",
+      "나이아신아마이드·아데노신 — 미백·주름개선 기능성 조합",
+      "고농축이지만 빠르게 흡수되는 가벼운 제형"]}
+  ],
+  clinical:{title:"핑크애플퓨어 앰플 모공 임상 데이터", foot:"※ 론지 공식 제품 자료 기재 수치 · 인체 적용시험 결과 · 송출 시 실증 자료 보유 필요",
+    data:[
+      {label:"모공 볼륨 개선",val:86.17,disp:"86.17%"},
+      {label:"모공 면적 개선",val:85.60,disp:"85.60%"},
+      {label:"모공 수 개선",val:77.17,disp:"77.17%"},
+      {label:"모공 부피 개선",val:50.00,disp:"50.00%"}]},
+  clinical2:{title:"부위별 광채 개선 데이터", foot:"※ 부위별 측정값 · 론지 공식 제품 자료 기재 수치",
+    data:[
+      {label:"이마",val:47.54,disp:"최대 47.54%"},
+      {label:"콧등",val:38.78,disp:"38.78%"},
+      {label:"턱",val:37.04,disp:"37.04%"},
+      {label:"광대(좌)",val:31.75,disp:"31.75%"},
+      {label:"광대(우)",val:28.33,disp:"28.33%"}]},
+  certs:["사용 만족도 98%","미백·주름개선 기능성","피부 자극 테스트 완료","모공 관리 3가지 특허 성분","비건·클린 뷰티"],
+  recommend:["모공과 광채를 동시에 잡고 싶은 피부","속광·물광을 원하는 건조·탄력 저하 피부","메이크업 밀착 바탕을 만들고 싶은 피부"],
+  usage:["토너로 결을 정돈한 뒤 앰플 적당량을 얼굴 전체에 도포","모공이 신경 쓰이는 부위는 한 번 더 레이어링","손바닥으로 감싸 흡수시킨 후 크림으로 마무리"],
+  closing:"모공도, 광채도 포기할 수 없다면. 숫자로 증명된 모공싹 앰플 한 방울이 답이 될 수 있어요.",
+  event:"2026 화해 상반기 효능/효과 어워드 '모공 부문 1위' 기념 1+1 이벤트 진행 중",
+  tags:["론지","모공앰플","광채앰플","속광","물광","핑크애플","모공관리","비건"]
+},
+/* 3 */{
+  id:3, date:"2026-07-03", day:"금", line:"모공싹", lineEn:"PINK APPLE PURE", cat:"크림",
+  product:"핑크애플퓨어 크림", title:"48시간 보습 + 화잘먹 베이스, 모공 수분 크림의 조건",
+  concept:{tag:"모공 루틴의 마무리, 48시간 보습 모공 수분 크림", badge:"48시간 보습",
+    ings:["아오리 사과수","히알루론산","식물성 콜라겐","나이아신아마이드","아데노신","모공 특허 3종"]},
+  hook:["모공 케어의 마지막은 '수분을 붙잡는 일'입니다.",
+    "아무리 좋은 앰플을 발라도 수분이 금방 증발하면 모공은 다시 도드라져 보이죠."],
+  pains:["바르고 돌아서면 속이 당기는 피부","오후만 되면 화장이 들뜨고 모공에 끼는 피부","무거운 크림은 번들거려서 싫은 피부"],
+  lead:"핑크애플퓨어 크림은 모공 케어 루틴의 마무리 단계에서 수분을 오래 붙잡고 피부결을 정돈하는 반투명 젤크림입니다. 끈적임 없이 촉촉하게 마무리되어 화장 잘 먹는 베이스를 만들어줘요.",
+  sections:[
+    {h:"왜 '모공 수분 크림'일까", items:[
+      "모공 관리 3가지 특허 성분 — 피지·모공·피부결 케어",
+      "히알루론산 — 장시간 보습으로 수분 증발 방지",
+      "식물성 콜라겐 — 탄력 있는 피부 인상",
+      "나이아신아마이드·아데노신 — 미백·주름개선 기능성"]}
+  ],
+  bigstat:{stat:"48h", label:"보습 지속 케어", sub:"하루 종일 촉촉하게, 화잘먹 베이스 완성"},
+  certs:["48시간 보습","모공 개선 · 수분 개선","미백·주름개선 기능성","피부 자극 테스트 완료","비건·클린 뷰티"],
+  recommend:["수분이 금방 증발하는 건조·푸석 피부","메이크업이 뜨는 피부","모공 루틴을 가볍게 마무리하고 싶은 피부"],
+  usage:["토너·앰플 후 마지막 단계에서 적당량을 펴 바르기","건조한 부위는 한 번 더 덧발라 밀착","손바닥으로 감싸 흡수시키면 화장 잘 먹는 베이스 완성"],
+  closing:"채우는 것보다 '붙잡는 것'이 중요한 보습. 48시간 보습 모공 크림으로 하루의 끝까지 촉촉하게.",
+  event:"모공싹 라인 1+1 이벤트와 함께 클렌징~크림 5단계로 완성해 보세요.",
+  tags:["론지","모공크림","48시간보습","수분크림","화잘먹","핑크애플","수부지크림","비건"]
+},
+/* 4 */{
+  id:4, date:"2026-07-06", day:"월", line:"모공싹", lineEn:"PINK APPLE PURE", cat:"클렌징",
+  product:"핑크애플퓨어 젤리오일클렌저", title:"블랙헤드·피지 관리, 1차 세안부터 달라야 하는 이유",
+  concept:{tag:"흐르지 않는 젤리 제형의 1차 모공 클렌저", badge:"미세플라스틱 NO 캡슐",
+    ings:["사과 유래 성분","히알루론산","식물성 콜라겐","모공 특허 3종"]},
+  hook:["코 옆 블랙헤드와 번들거리는 피지, 사실 1차 세안에서 절반이 결정됩니다.",
+    "메이크업과 피지처럼 물에 안 씻기는 유분성 노폐물은 오일 클렌징 단계에서 녹여내야 해요."],
+  pains:["코·턱 블랙헤드가 늘 신경 쓰이는 피부","피지·메이크업 잔여물이 찝찝한 피부","화장이 잘 안 먹는 유분 많은 피부"],
+  lead:"핑크애플퓨어 젤리오일클렌저는 흐르지 않는 젤리 제형으로 손과 얼굴에 부드럽게 밀착해, 메이크업·피지·모공 속 노폐물을 부드럽게 녹여내는 1차 모공 클렌저입니다.",
+  sections:[
+    {h:"이 클렌저가 다른 점", items:[
+      "흐르지 않는 젤리 제형 — 손·얼굴에 밀착되어 마일드한 사용감",
+      "모공 관리 3가지 특허 성분 — 피지·모공·피부결 포인트",
+      "사과 유래 성분 + 히알루론산 — 세정 후에도 촉촉함 유지",
+      "미세플라스틱이 아닌 안심 캡슐 설계"]}
+  ],
+  certs:["모공 관리 3가지 특허 성분","미세플라스틱 NO 캡슐","유수분 밸런스 케어","비건·클린 뷰티"],
+  caution:"화장품 표시·광고 기준상 '블랙헤드·피지를 없앤다/완전 제거' 같은 단정 표현은 사용하지 않고, '부드럽게 녹여 세정하는 데 도움'으로 표현했습니다.",
+  recommend:["피지·블랙헤드가 고민인 피부","메이크업을 자주 하는 피부","화장이 잘 안 먹는 유분 많은 피부"],
+  usage:["건조한 손·얼굴에 젤리를 펴 발라 메이크업과 피지를 부드럽게 녹이기","미온수로 유화 후 깨끗이 헹구기","이후 폼클렌저로 2차 세안하면 이중세안 완성"],
+  closing:"깨끗한 모공의 시작은 '잘 지우는 것'. 1차 세안부터 달라지면 피부결도 달라집니다.",
+  tags:["론지","젤리오일클렌저","블랙헤드","피지","이중세안","1차세안","모공클렌징","비건"]
+},
+/* 5 */{
+  id:5, date:"2026-07-08", day:"수", line:"모공싹", lineEn:"PINK APPLE PURE", cat:"클렌징",
+  product:"핑크애플퓨어 폼클렌저", title:"데일리 모공 세안, 약산성 거품 클렌징의 힘",
+  concept:{tag:"풍성한 거품으로 모공 속 노폐물을 정리하는 데일리 폼클렌저", badge:"매일 쓰는 2차 세안",
+    ings:["사과 유래 성분","히알루론산","식물성 콜라겐","모공 특허 3종"]},
+  hook:["모공 관리는 거창한 케어가 아니라 매일의 세안에서 시작됩니다.",
+    "노폐물과 피지를 부드럽게 정리하되, 세안 후 당기지 않는 것이 핵심이에요."],
+  pains:["세안 후 피부가 심하게 당기는 피부","모공·각질이 신경 쓰이는 피부","간편하지만 말끔한 세안을 원하는 피부"],
+  lead:"핑크애플퓨어 폼클렌저는 풍성한 거품으로 모공 속 노폐물과 피지를 산뜻하게 정리하면서도, 세안 후 촉촉함을 남기는 데일리 모공 폼클렌저입니다.",
+  sections:[
+    {h:"데일리 세안 포인트", items:[
+      "모공 관리 3가지 특허 성분으로 피지·모공 고민 케어",
+      "부드러운 거품 — 문지름 자극을 줄인 마일드 세정",
+      "사과 유래 성분 + 히알루론산 — 세안 후 촉촉함 유지",
+      "화장이 잘 먹는 깨끗한 바탕 정돈"]}
+  ],
+  certs:["모공 관리 3가지 특허 성분","세안 후 촉촉함 케어","유수분 밸런스","비건·클린 뷰티"],
+  caution:"세안제는 기능성(미백·주름) 표현 대상이 아니며, '피지·각질이 싹 사라진다/모공 개선 보장' 같은 단정 표현은 배제했습니다.",
+  recommend:["모공·각질이 고민인 피부","피지·유분이 많은 피부","간편하지만 말끔한 세안을 원하는 피부"],
+  usage:["적당량을 손에 덜어 충분히 거품 내기","얼굴 전체를 부드럽게 굴리듯 세안","미온수로 깨끗이 헹군 뒤 토너로 정돈"],
+  closing:"좋은 피부의 바탕은 '잘 씻는 것'. 매일의 약산성 거품 세안이 매끈한 피부결을 만듭니다.",
+  tags:["론지","폼클렌저","모공세안","피지세안","2차세안","데일리클렌징","핑크애플","비건"]
+},
+/* 6 */{
+  id:6, date:"2026-07-10", day:"금", line:"클렌징", lineEn:"CLEANSING", cat:"클렌징",
+  product:"론지 CC 클렌저", title:"지성·복합성 피부를 위한 활성탄 숯 캡슐 클렌징",
+  concept:{tag:"활성탄 숯 캡슐로 모공 속 노폐물·피지를 흡착하는 클렌저", badge:"제조방법 특허 출원",
+    ings:["활성탄 숯 캡슐","자연 유래 계면활성제","피부 진정 성분"]},
+  hook:["번들거리는 피지와 모공 속 노폐물, 일반 클렌징으로는 어딘가 찝찝하셨죠?",
+    "지성·복합성 피부에는 '흡착'에 강한 클렌징이 잘 맞습니다."],
+  pains:["오후만 되면 번들거리는 지성·복합성 피부","모공 속 노폐물·피지가 신경 쓰이는 피부","트러블이 잦은 피부결 고민"],
+  lead:"론지 CC 클렌저는 (주)케이피티 기술 기반의 활성탄 숯 캡슐로 모공 속 노폐물과 피지를 흡착해 산뜻하게 정리하는 지성·복합성 피부용 클렌저입니다. 미세플라스틱이 아닌 안심 캡슐을 사용했어요.",
+  sections:[
+    {h:"숯 캡슐 클렌징의 핵심", items:[
+      "활성탄 숯 캡슐 — 노폐물·피지 흡착에 초점",
+      "자연 유래 계면활성제 — 부드러운 세정",
+      "피부 진정 성분 — 세안 후 편안한 사용감",
+      "미세플라스틱이 아닌 안심 캡슐 (제조 방법 특허 출원)"]}
+  ],
+  certs:["활성탄 숯 캡슐 (케이피티 기술)","제조 방법 특허 출원","미세플라스틱 NO 캡슐","피부 저자극 테스트 완료"],
+  caution:"'트러블·여드름 치료, 노폐물 100% 제거, 피지 완전 차단' 등 단정·의약품 오인 표현은 사용하지 않았습니다.",
+  recommend:["지성·복합성 피부","피지·모공 노폐물이 고민인 피부","트러블이 잦은 피부결 고민"],
+  usage:["적당량을 손에 덜어 거품 내기","피지가 많은 T존부터 부드럽게 세안","미온수로 깨끗이 헹군 뒤 보습 단계로"],
+  closing:"피지·노폐물 고민이라면, 흡착에 강한 숯 캡슐 클렌징으로 산뜻하게 리셋해 보세요.",
+  tags:["론지","CC클렌저","활성탄","숯클렌저","피지흡착","지성피부","딥클렌징","비건"]
+},
+/* 7 */{
+  id:7, date:"2026-07-13", day:"월", line:"클렌징", lineEn:"CLEANSING", cat:"세안제",
+  product:"론지 스타폼 홍삼 세안제", title:"홍삼 10% 효소 파우더 세안, 묵은 각질 케어의 정석",
+  concept:{tag:"홍삼 파우더 10% + 파파인 효소의 약산성 엔자임 파우더", badge:"약산성 pH 5.9",
+    ings:["홍삼 파우더 10%","파파인 효소","자연 유래 계면활성제","진정·보습 성분"]},
+  hook:["스크럽으로 박박 문지르는 각질 케어, 이제 피부가 부담스러워하지 않나요?",
+    "묵은 각질은 '밀어내기'보다 효소로 '부드럽게 연화'하는 편이 피부에 순합니다."],
+  pains:["스크럽 자극이 부담스러운 건성·민감성 피부","묵은 각질로 피부결이 거칠어 보이는 피부","세안 후 매끈함과 편안함을 동시에 원하는 피부"],
+  lead:"론지 스타폼 홍삼 세안제는 홍삼 파우더 10%와 파파인 효소를 담은 약산성 엔자임 파우더 세안제입니다. 독자적인 그래뉼 가공 기법으로 자극은 줄이고 각질은 부드럽게 정돈해줘요.",
+  sections:[
+    {h:"효소 파우더 세안의 강점", items:[
+      "홍삼 파우더 10% — 항산화 원료 스토리",
+      "파파인 효소 — 묵은 각질을 부드럽게 연화",
+      "약산성 pH 5.9 — 피부 친화적인 세안 환경",
+      "독자적인 그래뉼 가공 기법 (제조 방법 특허 출원)"]}
+  ],
+  certs:["홍삼 파우더 10% 함유","약산성 pH 5.9","독자적 그래뉼 가공 기법 (제조 방법 특허 출원)","파파인 효소 세안","피부 저자극 테스트 완료"],
+  caution:"'각질 완전 제거, 무자극 100%, 피부질환 치료' 등 단정·의약품 오인 표현은 사용하지 않았습니다.",
+  recommend:["건성·민감성 피부","스크럽 자극이 부담스러운 피부","묵은 각질과 거친 피부결이 고민인 피부"],
+  usage:["파우더를 손에 덜어 물과 함께 거품 내기","얼굴 전체를 부드럽게 굴리듯 세안","주 2~3회 데일리 효소 세안으로 결 정돈"],
+  closing:"강하게 밀어내지 않아도 매끈해질 수 있어요. 홍삼 효소 파우더로 부담 없는 각질 케어를.",
+  tags:["론지","홍삼세안제","효소세안","파우더워시","약산성","파파인","각질케어","민감피부"]
+},
+/* 8 */{
+  id:8, date:"2026-07-15", day:"수", line:"시카", lineEn:"CICA · CERA", cat:"크림",
+  product:"론지 시카 세라 크림", title:"보습 110% · 장벽 82% 개선, 민감 피부 진정 크림의 임상",
+  concept:{tag:"병풀추출물 + 세라-콤플렉스의 고보습 진정 크림", badge:"피부 자극지수 0.00",
+    ings:["병풀추출물","세라마이드엔피","지방산","콜레스테롤","판테놀","세라마이드 캡슐"]},
+  hook:["환절기만 되면 붉어지고 당기는 피부, 진정만으로는 부족하다고 느끼셨다면.",
+    "민감 피부일수록 '진정 + 보습 + 장벽'을 함께 챙겨야 흔들리지 않아요."],
+  pains:["환절기마다 붉어지고 당기는 민감 피부","보습을 해도 금방 건조해지는 약한 장벽","진정과 보습을 동시에 원하는 피부"],
+  lead:"론지 시카 세라 크림은 병풀추출물과 세라-콤플렉스(세라마이드·지방산·콜레스테롤·판테놀)를 피부와 유사한 구조로 조합한 고보습 진정 크림입니다. 세라마이드 흡수율을 높이도록 설계했어요.",
+  sections:[
+    {h:"진정 + 장벽, 함께 케어하는 이유", items:[
+      "병풀추출물 — 민감해진 피부를 진정",
+      "세라-콤플렉스 — 피부 지질 구조를 닮은 장벽 케어",
+      "판테놀 — 수분 결합·보습·피부 보호",
+      "세라마이드 흡수율 80% 증가 설계 + 실리콘 FREE"]}
+  ],
+  clinical:{title:"시카 세라 크림 임상 데이터", foot:"※ 론지 공식 제품 자료 기재 수치 · 보습 110%는 기준 대비 개선치 · 송출 시 실증 자료 보유 필요",
+    data:[
+      {label:"피부 보습 개선",val:100,disp:"110%"},
+      {label:"피부 장벽 개선",val:82,disp:"82%"},
+      {label:"세라마이드 흡수율",val:80,disp:"+80% 설계"},
+      {label:"피부 자극지수",val:4,disp:"0.00"}]},
+  certs:["피부 보습 110% 개선","피부 장벽 82% 개선","피부 자극지수 0.00","실리콘 FREE","제조 방법 특허 출원"],
+  recommend:["환절기마다 예민해지는 피부","장벽이 약해 쉽게 건조해지는 피부","진정과 고보습을 동시에 원하는 피부"],
+  usage:["스킨케어 마지막 단계에서 적당량을 부드럽게 펴 바르기","건조·예민한 부위는 한 번 더 레이어링","손바닥으로 감싸 흡수시켜 장벽 케어 마무리"],
+  closing:"진정만으로는 부족했다면, 장벽까지 함께. 숫자로 확인되는 고보습 진정 크림으로 편안하게.",
+  tags:["론지","시카크림","세라마이드","피부장벽","민감피부","고보습","판테놀","병풀추출물"]
+},
+/* 9 */{
+  id:9, date:"2026-07-17", day:"금", line:"시카", lineEn:"CICA · SR", cat:"크림",
+  product:"론지 시카 세라 SR샷 100", title:"성분 전달이 다른 홈케어, 스피큘 SR샷 크림",
+  concept:{tag:"천연 해면 유래 스피큘로 흡수 경로를 형성하는 홈케어 SR샷 크림", badge:"SR Technology",
+    ings:["천연 해면 스피큘","세라마이드엔피","지방산","콜레스테롤","판테놀"]},
+  hook:["같은 성분도 '어떻게 전달되느냐'에 따라 사용 경험이 달라집니다.",
+    "SR샷 크림은 따끔하게 느껴지는 작동감으로 시카·세라마이드 케어 경험을 더해주는 홈케어 크림이에요."],
+  pains:["바르기만 해서는 흡수감이 아쉬웠던 피부","피부샵 관리처럼 집에서 집중 케어하고 싶은 분","진정과 보습을 함께 원하는 피부결 고민"],
+  lead:"론지 시카 세라 SR샷 100은 천연 해면 유래 스피큘(미세 입자)이 각질층에 미세한 자극을 주어 유효성분 전달 경로를 형성하도록 설계한 홈케어 크림입니다. 사용 시 느껴지는 따끔거림은 자연스러운 작동감이에요.",
+  sections:[
+    {h:"SR샷이 전하는 홈케어 경험", items:[
+      "천연 해면 유래 스피큘 — 흡수 경로 형성 설계",
+      "시카 — 민감해진 피부 진정 케어",
+      "세라-콤플렉스 — 보습·장벽 안정화",
+      "피부샵 관리처럼 느껴지는 홈케어 루틴"]}
+  ],
+  certs:["SR Technology 적용","천연 해면 유래 스피큘","세라-콤플렉스 배합","비건·클린 뷰티"],
+  caution:"화장품 표시·광고 기준상 '미세침·마이크로니들·MTS·피부 속 침투·재생/흉터 치료'는 시술·의약품 오인 표현으로 사용을 피했습니다. 스피큘은 '사용감·전달 설계'로만 안내하며, 따끔거림이 효과를 보장하는 것은 아닙니다.",
+  recommend:["흡수감이 아쉬웠던 피부","홈케어 집중 관리를 원하는 피부","진정·보습을 함께 원하는 피부결 고민"],
+  usage:["주 1~2회, 깨끗이 세안한 건조한 피부에 적당량 도포","눈가·입가는 피해 부드럽게 펴 바르기","따끔거림이 느껴지면 사용 빈도를 조절"],
+  closing:"성분만큼 중요한 건 '전달'. 집에서 즐기는 스피큘 홈케어로 색다른 케어 경험을.",
+  tags:["론지","SR샷","스피큘","홈케어","시카세라마이드","피부결","흡수","비건"]
+},
+/* 10 */{
+  id:10, date:"2026-07-20", day:"월", line:"프리미엄", lineEn:"REPAIR", cat:"크림",
+  product:"론지 리페어 스킨백 캡슐 크림", title:"172배 항산화 풀러린, 24시간 보습 안티에이징 캡슐 크림",
+  concept:{tag:"진주를 닮은 캡슐에 풀러린을 담은 보습 안티에이징 크림", badge:"미백·주름개선 기능성",
+    ings:["풀러린","판테놀","아데노신","나이아신아마이드"]},
+  hook:["나이가 같아도 피부가 달라 보이는 이유, 결국 '관리의 깊이'입니다.",
+    "건조하고 윤기 없는 피부에는 항산화와 보습을 함께 채워주는 캡슐 크림이 잘 맞아요."],
+  pains:["건조하고 윤기가 부족한 피부","탄력·주름·칙칙함이 함께 고민인 피부","고보습 안티에이징 크림을 찾는 분"],
+  lead:"론지 리페어 스킨백 캡슐 크림은 진주를 닮은 캡슐 제형 안에 비타민C보다 강력하다고 알려진 항산화 성분 풀러린과 판테놀·아데노신·나이아신아마이드를 담았습니다. 특허받은 저온 캡슐화 기술로 유효성분을 안정화했어요.",
+  sections:[
+    {h:"프리미엄 캡슐 크림의 가치", items:[
+      "풀러린 — 강력한 항산화 원료 스토리",
+      "판테놀 — 보습·피부 컨디션 유지",
+      "아데노신 — 주름개선 기능성 / 나이아신아마이드 — 미백 기능성",
+      "저온 냉각 방식 캡슐화 (제조 방법 특허)"]}
+  ],
+  clinical:{title:"리페어 캡슐 크림 보습 데이터", foot:"※ 론지 공식 제품 자료 기재 수치 · 24시간 보습 인증 · 송출 시 실증 자료 보유 필요",
+    data:[
+      {label:"24시간 후 수분 변화량",val:60,disp:"20.76%"},
+      {label:"풀러린 항산화 원료 스토리",val:100,disp:"172배"}]},
+  bigstat:{stat:"172배", label:"항산화 원료 스토리 (풀러린)", sub:"24시간 보습 인증 · 미백·주름개선 기능성"},
+  certs:["24시간 보습 인증","24시간 후 수분 변화량 20.76%","미백·주름개선 기능성","저온 냉각 방식 제조 방법 특허"],
+  caution:"'주름을 없앤다, 노화 방지 확정, 의료적 항산화 치료' 등 단정·의약품 오인 표현은 배제했습니다. '172배 항산화'는 성분(풀러린) 원료 스토리로, 완제품 효능과 구분해 표기했습니다.",
+  recommend:["건조하고 윤기가 부족한 피부","탄력·주름·칙칙함이 고민인 피부","고보습 안티에이징 크림을 찾는 분"],
+  usage:["스킨케어 마지막 단계에서 캡슐이 풀어지도록 부드럽게 펴 바르기","건조한 부위는 한 번 더 레이어링","아침·저녁 데일리로 꾸준히 사용"],
+  closing:"같은 나이, 다른 피부. 풀러린 캡슐 크림으로 윤기와 환한 인상을 오래 지켜보세요.",
+  tags:["론지","풀러린크림","캡슐크림","안티에이징","24시간보습","미백기능성","주름개선","프리미엄"]
+},
+/* 11 */{
+  id:11, date:"2026-07-22", day:"수", line:"브라이트닝", lineEn:"VITA C", cat:"앰플",
+  product:"인텐시브 비트씨 앰플 (5주 프로그램)", title:"매주 신선한 비타민C, 5주 집중 브라이트닝 프로그램",
+  concept:{tag:"매주 한 병씩 신선하게 쓰는 5주 비타민C 브라이트닝", badge:"미백·주름개선 기능성",
+    ings:["비타민C 캡슐","글루타티온 세럼","Double Core Shell 안정화"]},
+  hook:["비타민C, 좋은 건 알지만 '금방 산화된다'는 게 늘 아쉬웠죠.",
+    "그래서 매주 한 병씩, 신선한 상태로 쓰는 5주 프로그램으로 풀었습니다."],
+  pains:["칙칙하고 생기 없어 보이는 피부톤","비타민C 산화로 효과가 아쉬웠던 분","눈가 주름·탄력까지 함께 챙기고 싶은 분"],
+  lead:"인텐시브 비트씨 앰플 5주 프로그램은 비타민C 캡슐과 글루타티온 세럼을 사용 직전에 섞어 쓰는 브라이트닝 앰플입니다. 매주 새 병을 열어 신선한 비타민C를 사용하도록 구성했어요.",
+  sections:[
+    {h:"5주 프로그램이 다른 점", items:[
+      "One Bottle a Week — 매주 신선한 비타민C",
+      "비타민C 캡슐 — 밝은 피부톤·콜라겐 생성 도움 스토리",
+      "글루타티온 — 항산화·맑은 피부 인상",
+      "Double Core Shell 안정화 기술 + 투명 이중 용기"]}
+  ],
+  certs:["미백·주름개선 기능성","Double Core Shell 안정화 기술 (제조 방법 특허 출원)","투명 이중 용기 (산화 방지 설계)","5주 집중 프로그램"],
+  caution:"'기미·잡티·색소침착 치료, 피부가 하얘진다, 즉각 미백 보장' 등 단정·치료 표현은 사용하지 않았습니다. 기능성은 미백·주름개선 심사 범위 내로만 표현했습니다.",
+  recommend:["칙칙함·탄력·눈가 주름이 고민인 피부","꾸준한 브라이트닝 루틴을 원하는 분","중요한 일정 전 집중 관리를 원하는 분"],
+  usage:["사용 직전 비타민C 캡슐과 세럼을 흔들어 혼합","세안·토너 후 얼굴 전체에 도포","주 단위로 새 병을 열어 5주간 꾸준히"],
+  closing:"비타민C는 신선함이 생명. 매주 새롭게, 5주 동안 맑고 탄력 있어 보이는 피부로.",
+  tags:["론지","비타민C앰플","글루타티온","브라이트닝","미백기능성","5주프로그램","탄력케어","비건"]
+},
+/* 12 */{
+  id:12, date:"2026-07-24", day:"금", line:"마스크", lineEn:"SHEET MASK", cat:"마스크팩",
+  product:"시카 카밍 어센틱 글로우 시트 마스크", title:"장벽 26.4% · 진정 13.5% 개선, 비건 시카 시트 마스크",
+  concept:{tag:"시카 에센스를 듬뿍 담은 비건 셀룰로오스 진정 시트 마스크", badge:"비건 인증 시트",
+    ings:["어성초 추출물","병풀 추출물","흰목이버섯","베타인","판테놀"]},
+  hook:["햇볕·열감으로 달아오른 피부, 시원하게 진정시키고 싶은 날 있죠.",
+    "시카 마스크는 쿨링감과 함께 장벽·진정·속보습을 한 장으로 채워줍니다."],
+  pains:["달아오르고 예민해진 피부","장벽이 약해 쉽게 건조해지는 피부","쿨링 마스크로 빠르게 진정하고 싶은 날"],
+  lead:"시카 카밍 어센틱 글로우 시트 마스크는 어성초·병풀 등 진정 성분을 담은 시카 에센스를 비건 인증 식물성 셀룰로오스(누드셀) 시트에 듬뿍 적신 진정 시트 마스크입니다.",
+  sections:[
+    {h:"한 장에 담은 진정 케어", items:[
+      "어성초·병풀 추출물 — 피부 진정",
+      "흰목이버섯 — 보습·윤기 / 베타인 — 유수분 밸런스",
+      "판테놀 — 보습·장벽 케어",
+      "유칼립투스 유래 비건 셀룰로오스 시트 + 쿨링감"]}
+  ],
+  clinical:{title:"시카 시트 마스크 개선 데이터", foot:"※ 론지 공식 제품 자료 기재 수치 · 최대 26% 개선율 · 송출 시 실증 자료 보유 필요",
+    data:[
+      {label:"피부 장벽 개선",val:26.4,disp:"26.4%"},
+      {label:"피부 진정 개선",val:13.5,disp:"13.5%"},
+      {label:"속보습 개선",val:8,disp:"8%"}]},
+  certs:["비건 인증 식물성 셀룰로오스 시트","피부 장벽 26.4% 개선","피부 진정 13.5% 개선","속보습 8% 개선","미백·주름개선 기능성"],
+  recommend:["달아오르고 예민해진 피부","장벽·진정·속보습이 함께 필요한 피부","쿨링 마스크가 필요한 날"],
+  usage:["세안·토너 후 시트를 펴서 얼굴에 밀착","15~20분 후 떼어내고 남은 에센스를 가볍게 흡수","냉장 보관하면 쿨링감 업"],
+  closing:"달아오른 날엔 시원한 한 장. 비건 시카 시트로 장벽까지 편안하게 진정시켜 보세요.",
+  tags:["론지","시카마스크","진정마스크","비건시트","쿨링","병풀","속보습","피부장벽"]
+},
+/* 13 */{
+  id:13, date:"2026-07-27", day:"월", line:"선케어", lineEn:"SUNCARE", cat:"선크림",
+  product:"론지 자신감 부스팅 선크림", title:"모공 케어 후 선크림이 중요한 이유 (3중 기능성 톤업 선크림)",
+  concept:{tag:"식물성 뮤신 + 8중 히알루론산의 촉촉한 톤업 선크림", badge:"3중 기능성",
+    ings:["식물성 뮤신","8중 히알루론산","3중 기능성 성분"]},
+  hook:["애써 모공·피부결을 관리해도, 마지막 자외선 차단을 놓치면 아쉽습니다.",
+    "아침 스킨케어의 진짜 마무리는 선크림. 그날의 피부를 지키는 마지막 한 단계예요."],
+  pains:["칙칙한 피부톤을 자연스럽게 보정하고 싶은 분","건조한 선크림이 부담스러운 피부","메이크업 전 톤업 베이스가 필요한 분"],
+  lead:"론지 자신감 부스팅 선크림은 식물성 뮤신과 8중 히알루론산으로 촉촉함을 더한 3중 기능성(자외선 차단·미백·주름개선) 선크림입니다. 본연의 환하고 맑은 피부톤을 자연스럽게 연출해줘요.",
+  sections:[
+    {h:"데일리 톤업 선크림의 조건", items:[
+      "3중 기능성 — 자외선 차단 + 미백 + 주름개선",
+      "식물성 뮤신 — 촉촉한 보호감과 윤기",
+      "8중 히알루론산 — 다층 보습으로 건조함 완화",
+      "메이크업 베이스처럼 쓰기 좋은 자연스러운 톤업"]}
+  ],
+  certs:["3중 기능성 (자외선 차단·미백·주름개선)","식물성 뮤신 함유","8중 히알루론산","비건·클린 뷰티"],
+  caution:"기능성 심사·보고된 제품에 한해 '자외선 차단·미백·주름개선'을 표기했습니다. '자외선 100% 차단, 피부가 하얘진다, 기미 치료' 등 단정·치료 표현은 사용하지 않았습니다.",
+  recommend:["칙칙한 피부톤이 고민인 분","건조한 선크림이 부담스러운 피부","메이크업 전 톤업 베이스가 필요한 분"],
+  usage:["스킨케어 마지막 단계, 외출 15~20분 전에 도포","얼굴 전체에 고르게 펴 바르고 목까지 연장","야외 활동 시 2~3시간 간격으로 덧바르기"],
+  closing:"오늘 관리한 피부, 오늘의 자외선으로부터 지키세요. 촉촉한 톤업 선크림으로 자신감 있게.",
+  tags:["론지","톤업선크림","3중기능성","자외선차단","식물성뮤신","데일리선크림","메이크업베이스","비건"]
+},
+/* 14 */{
+  id:14, date:"2026-07-29", day:"수", line:"클렌징", lineEn:"CLEANSING", cat:"세안제",
+  product:"론지 유유 세안제", title:"스크럽 대신 효소, 민감 피부 약산성 각질 케어",
+  concept:{tag:"핑크 효소 알갱이의 부드러운 약산성 데일리 파우더 세안", badge:"약산성 pH 5.9",
+    ings:["핑크 효소 알갱이","약산성 세안 베이스"]},
+  hook:["각질은 신경 쓰이는데, 스크럽은 피부가 부담스러워하는 분들께.",
+    "효소 파우더 세안은 매일 부담 없이 부드럽게 결을 정돈하는 방향이 핵심입니다."],
+  pains:["스크럽 자극이 부담스러운 민감 피부","각질로 피부결이 거칠어 보이는 피부","데일리로 순한 세안을 원하는 피부"],
+  lead:"론지 유유 세안제는 핑크 효소 알갱이를 담은 파우더 타입의 약산성 데일리 세안제입니다. 강한 스크럽 없이도 묵은 각질을 부드럽게 정돈해 산뜻한 세안감을 줍니다.",
+  sections:[
+    {h:"순한 효소 세안 포인트", items:[
+      "핑크 효소 알갱이 — 묵은 각질을 부드럽게 관리",
+      "약산성 pH 5.9 — 피부 친화적인 세안 환경",
+      "파우더 타입 — 데일리로 부담 없는 사용감",
+      "민감 피부도 고려한 마일드 세정"]}
+  ],
+  certs:["약산성 pH 5.9","효소 파우더 세안","파우더 타입 데일리 케어","민감 피부 고려 설계"],
+  caution:"'무자극 100%, 각질 완전 제거, 피부 턴오버 치료' 등 단정·의약품 오인 표현은 사용하지 않았습니다.",
+  recommend:["민감해서 스크럽이 부담스러운 피부","각질로 결이 거칠어 보이는 피부","순한 데일리 세안을 원하는 피부"],
+  usage:["파우더를 손에 덜어 물과 함께 거품 내기","얼굴 전체를 부드럽게 굴리듯 세안","미온수로 헹군 뒤 보습 단계로 마무리"],
+  closing:"세지 않아도 매끈하게. 효소 파우더로 매일 순하게 각질을 정돈해 보세요.",
+  tags:["론지","유유세안제","효소세안","파우더워시","약산성","각질케어","민감피부","데일리세안"]
+},
+/* 15 */{
+  id:15, date:"2026-07-31", day:"금", line:"시카", lineEn:"CICA · MIST", cat:"미스트",
+  product:"론지 유유 미스트", title:"사막 피부 비상 보습, 롱체인 세라마이드 미스트",
+  concept:{tag:"롱체인 세라마이드로 민감 피부의 장벽을 케어하는 순한 보습 미스트", badge:"미백·주름개선 기능성",
+    ings:["롱체인 세라마이드","기능성 성분"]},
+  hook:["에어컨·히터 아래에서 푸석해지는 피부, 수시로 채워줄 보습이 필요하죠.",
+    "단순 수분 미스트가 아니라 장벽 성분까지 담은 미스트라면 더 든든합니다."],
+  pains:["냉난방으로 쉽게 건조해지는 피부","수시로 보습을 채우고 싶은 민감 피부","장벽 케어까지 원하는 피부"],
+  lead:"론지 유유 미스트는 롱체인 세라마이드를 담아 민감하고 건조한 피부의 보습과 장벽 케어를 돕는 순한 미스트입니다. 언제든 가볍게 뿌려 촉촉함과 편안함을 더해줘요.",
+  sections:[
+    {h:"비상 보습 미스트의 강점", items:[
+      "롱체인 세라마이드 — 피부 장벽 케어",
+      "수시 보습 — 메이크업 위에도 가볍게",
+      "민감·건조 피부를 위한 순한 처방",
+      "미백·주름개선 기능성 포인트"]}
+  ],
+  certs:["롱체인 세라마이드 함유","미백·주름개선 기능성","장벽 케어 설계","민감 피부 고려"],
+  caution:"'피부장벽 회복 보장, 피부염 치료, 즉각 주름 개선' 등 단정·치료 표현은 사용하지 않았습니다.",
+  recommend:["냉난방으로 쉽게 건조해지는 피부","수시 보습이 필요한 피부","장벽 케어를 원하는 민감 피부"],
+  usage:["얼굴에서 20~30cm 거리에서 가볍게 분사","건조할 때마다 수시로, 메이크업 위에도 사용","흡수 후 손바닥으로 가볍게 눌러주기"],
+  closing:"가방 속 비상 보습템 하나면 든든해요. 세라마이드 미스트로 건조할 틈 없이.",
+  tags:["론지","보습미스트","세라마이드","장벽케어","민감피부","수시보습","기능성미스트","비건"]
+},
+/* 16 */{
+  id:16, date:"2026-08-03", day:"월", line:"올인원", lineEn:"ALL IN ONE", cat:"에센스",
+  product:"론지 DTB 아쿠아 올인원 에센스", title:"스킨케어 단계를 줄이는 초정광천수 올인원 에센스",
+  concept:{tag:"세계적 광천수 초정광천수를 담은 간편 올인원 에센스", badge:"미백·주름개선 기능성",
+    ings:["초정광천수","기능성 성분"]},
+  hook:["바쁜 아침, 스킨·로션·에센스 다 챙기기 번거롭지 않나요?",
+    "한 병으로 촉촉하게 끝내는 올인원 에센스라면 루틴이 한결 가벼워집니다."],
+  pains:["스킨케어 단계를 줄이고 싶은 분","간편하지만 기능성까지 원하는 분","수분이 부족해 당기는 피부 / 남성 스킨케어 입문"],
+  lead:"론지 DTB 아쿠아 올인원 에센스는 세계적인 광천수로 알려진 초정광천수를 담아, 촉촉하고 부드러운 제형으로 간편하게 케어하는 올인원 에센스입니다. 복잡한 루틴 없이 한 병으로 수분과 기능성을 챙길 수 있어요.",
+  sections:[
+    {h:"올인원 한 병의 가치", items:[
+      "초정광천수 — 미네랄 워터 스토리와 수분감",
+      "올인원 제형 — 스킨·에센스 단계를 간소화",
+      "미백·주름개선 기능성 포인트",
+      "끈적임 적은 데일리 사용감 (남성·간편 루틴 선호 추천)"]}
+  ],
+  certs:["초정광천수 함유","미백·주름개선 기능성","올인원 간편 케어","비건·클린 뷰티"],
+  caution:"'한 병으로 모든 스킨케어 해결, 미백/주름 즉각 개선, 피부질환 치료' 등 과장·치료 표현은 사용하지 않았습니다.",
+  recommend:["스킨케어 단계를 줄이고 싶은 분","남성 스킨케어 입문자","수분이 부족해 당기는 피부"],
+  usage:["세안 후 적당량을 얼굴 전체에 펴 바르기","건조한 부위는 한 번 더 덧바르기","아침·저녁 데일리 올인원 케어로"],
+  closing:"케어는 간편하게, 기능성은 똑똑하게. 초정광천수 올인원 한 병으로 가벼운 루틴을.",
+  tags:["론지","올인원에센스","초정광천수","수분에센스","남성스킨케어","간편루틴","미백기능성","비건"]
+},
+/* 17 */{
+  id:17, date:"2026-08-05", day:"수", line:"마스크", lineEn:"SHEET MASK", cat:"마스크팩",
+  product:"어센틱 글로우 시트 마스크 (비타민·마누카허니·실크펩타이드)", title:"고민별로 고르는 비건 어센틱 글로우 시트 마스크",
+  concept:{tag:"생기·영양·탄력, 고민별로 고르는 비건 셀룰로오스 시트 마스크", badge:"비건 인증 시트",
+    ings:["나이아신아마이드","마누카 꿀","스쿠알란","실크아미노산","판테놀"]},
+  hook:["같은 시트 마스크라도, 그날 피부 컨디션에 맞춰 고르면 만족도가 다릅니다.",
+    "생기·영양·탄력, 세 가지 고민에 맞춘 비건 어센틱 글로우 시트 마스크를 소개할게요."],
+  pains:["칙칙해서 생기가 필요한 피부","건조하고 푸석해 영양이 필요한 피부","탄력이 떨어져 힘 없어 보이는 피부"],
+  lead:"어센틱 글로우 시트 마스크는 비건 인증 식물성 셀룰로오스(누드셀) 시트에 고민별 에센스를 담은 라인입니다. 그날의 피부 상태에 맞춰 골라 쓰는 재미가 있어요.",
+  sections:[
+    {h:"고민별 추천 가이드", items:[
+      "비타민 마스크 — 나이아신아마이드로 생기·밝기·속보습 (미백·주름개선 기능성)",
+      "마누카 허니 마스크 — 마누카 꿀·스쿠알란으로 영양·겉보습·속보습",
+      "실크 펩타이드 마스크 — 실크아미노산·스쿠알란으로 탄력·속보습",
+      "공통 — 비건 셀룰로오스 시트 + 쿨링감 + 피부 밀착"]}
+  ],
+  certs:["비건 인증 식물성 셀룰로오스 시트","비타민 마스크 미백·주름개선 기능성","누드셀 밀착 시트","쿨링 케어"],
+  caution:"'피부가 하얘진다, 기미·잡티 치료, 리프팅/재생 치료' 등 단정·치료 표현은 사용하지 않았습니다. 미백·주름개선 기능성은 해당 기능성 제품(비타민)에 한해 표기했습니다.",
+  recommend:["생기가 필요한 칙칙한 피부 → 비타민","영양·윤기가 필요한 건조 피부 → 마누카 허니","탄력 케어가 필요한 피부 → 실크 펩타이드"],
+  usage:["세안·토너 후 고민에 맞는 시트를 선택해 밀착","15~20분 후 떼고 남은 에센스를 흡수","주 2~3회, 컨디션에 따라 번갈아 사용"],
+  closing:"오늘 내 피부엔 어떤 한 장? 비건 어센틱 글로우로 고민별 맞춤 케어를 즐겨보세요.",
+  tags:["론지","시트마스크","비건마스크","비타민마스크","마누카허니","실크펩타이드","속보습","쿨링"]
+},
+/* 18 */{
+  id:18, date:"2026-08-07", day:"금", line:"모공싹", lineEn:"PINK APPLE PURE", cat:"키트",
+  product:"핑크애플퓨어 스킨케어 5종 키트", title:"클렌징부터 크림까지, 모공싹 5단계 루틴 키트",
+  concept:{tag:"핑크애플 퓨어 5종을 작고 간편하게, 모공싹 5단계 키트", badge:"여행·선물용 키트",
+    ings:["젤리오일클렌저","폼클렌저","토너","앰플","크림"]},
+  hook:["모공 루틴, 어디서부터 시작할지 막막했다면 이 키트 하나로 충분해요.",
+    "클렌징부터 크림까지 핑크애플 퓨어 5종을 여행용 사이즈로 담았습니다."],
+  pains:["모공싹 라인을 처음 경험해 보고 싶은 분","여행용 스킨케어가 필요한 분","선물용 키트를 찾는 분"],
+  lead:"핑크애플퓨어 스킨케어 5종 키트는 젤리오일클렌저 → 폼클렌저 → 토너 → 앰플 → 크림으로 이어지는 모공싹 5단계 루틴을 한 박스에 담은 키트입니다. 작지만 라인 전체를 경험할 수 있어요.",
+  sections:[
+    {h:"모공싹 5단계 루틴", items:[
+      "1단계 젤리오일클렌저 — 메이크업·피지 1차 세정",
+      "2단계 폼클렌저 — 모공 속 노폐물 2차 세안",
+      "3단계 토너 — 모공·각질·피부결 정돈",
+      "4단계 앰플 — 모공·광채 집중 케어",
+      "5단계 크림 — 48시간 보습으로 마무리"]}
+  ],
+  certs:["모공 관리 3가지 특허 성분 (핑크애플 공통)","비건·클린 뷰티","5-Step 루틴 구성","여행·선물용 사이즈"],
+  caution:"개별 제품의 임상 수치를 '키트 전체 결과'처럼 합산·과장하지 않도록, 각 제품의 데이터는 해당 제품 글에서 개별 안내합니다.",
+  recommend:["모공싹 라인 입문자","여행용 스킨케어가 필요한 분","선물용 키트를 찾는 분"],
+  usage:["젤리오일 → 폼클렌저 순으로 이중세안","토너 → 앰플 → 크림 순으로 모공 루틴 완성","여행·출장 시 파우치에 쏙"],
+  closing:"모공 루틴, 망설였다면 5종 키트로 가볍게 시작해 보세요. 핑크애플 퓨어의 모든 단계를 한 번에.",
+  event:"2026 화해 상반기 효능/효과 어워드 '모공 부문 1위' 라인을 키트로 만나보세요.",
+  tags:["론지","모공싹키트","핑크애플","여행용키트","5단계루틴","선물세트","모공관리","비건"]
+}
+];
+
+/* ============================ 렌더링 ============================ */
+const postsEl=document.getElementById('posts');
+const calBody=document.getElementById('calBody');
+const toast=document.getElementById('toast');
+
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>toast.classList.remove('show'),1600);}
+
+POSTS.forEach((p,idx)=>{
+  // 스케줄 행
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="d">${idx+1}회</td><td class="d">${p.date}</td><td class="d">${p.day}</td><td>${p.product}</td><td><a href="#post${p.id}">${p.title}</a></td>`;
+  calBody.appendChild(tr);
+
+  // 이미지
+  const imgs=buildImages(p);
+  const gallery=imgs.map((im,i)=>`<div class="figbox"><div id="svg_${p.id}_${i}">${im.svg}</div><div class="dl"><button onclick="dlPng(${p.id},${i},'${im.name.replace(/'/g,"")}')">⬇ 이미지 저장(PNG)</button></div></div>`).join("");
+
+  // 카드
+  const art=document.createElement('article');
+  art.className='post'; art.id='post'+p.id; art.dataset.line=p.line;
+  art.innerHTML=`
+    <div class="phead">
+      <div class="pmeta"><span class="day">${p.date} (${p.day})</span><span class="line">${p.line}</span><span class="cat">${p.cat}</span><span>${idx+1}/18회차</span></div>
+      <h2>${p.title}</h2>
+      <p class="prod">제품 · ${p.product}</p>
+    </div>
+    <div class="gallery">${gallery}</div>
+    <div class="bodywrap"><div class="body" id="body${p.id}">${renderBody(p)}</div></div>
+    <div class="pfoot">
+      <button class="cbtn primary" onclick="copyText(${p.id},this)">📋 본문 복사 (텍스트)</button>
+      <button class="cbtn ghost" onclick="copyHtml(${p.id},this)">&lt;/&gt; HTML 복사</button>
+      <button class="cbtn ghost" onclick="copyTitle('${p.title.replace(/'/g,"")}',this)">제목 복사</button>
+    </div>`;
+  postsEl.appendChild(art);
+});
+
+/* 필터 */
+document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const f=b.dataset.f;
+  document.querySelectorAll('article.post').forEach(a=>{
+    a.style.display=(f==='all'||a.dataset.line===f)?'':'none';
+  });
+}));
+
+/* 복사 기능 */
+function plainText(p){
+  const b=document.getElementById('body'+p.id);
+  let t='['+p.title+']\n제품: '+p.product+'  |  발행: '+p.date+' ('+p.day+')\n\n';
+  t+=b.innerText.replace(/\n{3,}/g,'\n\n').trim();
+  return t;
+}
+function copyText(id,btn){
+  const p=POSTS.find(x=>x.id===id);
+  navigator.clipboard.writeText(plainText(p)).then(()=>{flash(btn,'✅ 복사됨!');showToast('본문(텍스트)이 복사되었습니다');});
+}
+function copyTitle(t,btn){navigator.clipboard.writeText(t).then(()=>{flash(btn,'✅ 복사됨');showToast('제목이 복사되었습니다');});}
+function copyHtml(id,btn){
+  const b=document.getElementById('body'+id);
+  const html=b.innerHTML;
+  if(window.ClipboardItem){
+    const data=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([b.innerText],{type:'text/plain'})});
+    navigator.clipboard.write([data]).then(()=>{flash(btn,'✅ 복사됨');showToast('HTML 서식이 복사되었습니다 (에디터에 붙여넣기)');}).catch(()=>{navigator.clipboard.writeText(html);showToast('HTML 소스가 복사되었습니다');});
+  }else{navigator.clipboard.writeText(html).then(()=>showToast('HTML 소스가 복사되었습니다'));}
+}
+function flash(btn,txt){const o=btn.textContent;btn.textContent=txt;btn.classList.add('ok');setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1400);}
+
+/* SVG -> PNG 다운로드 */
+function dlPng(pid,i,name){
+  const wrap=document.getElementById('svg_'+pid+'_'+i);
+  const svg=wrap.querySelector('svg');
+  const w=+svg.getAttribute('width'), h=+svg.getAttribute('height');
+  const xml=new XMLSerializer().serializeToString(svg);
+  const blob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  img.onload=function(){
+    const sc=2, cv=document.createElement('canvas');cv.width=w*sc;cv.height=h*sc;
+    const ctx=cv.getContext('2d');ctx.scale(sc,sc);ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    cv.toBlob(function(b){
+      const a=document.createElement('a');a.href=URL.createObjectURL(b);
+      a.download=name+'.png';a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+      showToast('이미지(PNG)를 저장했습니다');
+    });
+  };
+  img.onerror=function(){showToast('이미지 저장에 실패했습니다');};
+  img.src=url;
+}
+</script>
+</body>
+</html>
